@@ -102,15 +102,24 @@ The app runs as one process because job progress and rate limit counts are kept 
 
 ```
 app.py               Flask app: routes, downloading, clip extraction, montage editing
-config.py            App settings, including yt-dlp options
-templates/index.html The web interface
+config.py            App settings, including folder locations and yt-dlp options
 cost_monitor.py      Estimates hosting costs from CPU, memory, and storage use
-cleanup.py           Standalone script for removing old files
+templates/
+  index.html         The web interface
 requirements.txt     Python dependencies
-Procfile, railway.json, nixpacks.toml   Deployment config
+Procfile, railway.json, nixpacks.toml, runtime.txt   Deployment config
 ```
 
-Created at runtime and not committed: `temp/` (downloads and clips), `processed/` (finished montages, deleted after 24 hours), `uploads/music/` (local background music), and `cache/` (saved gamertag lookups).
+Everything the app creates while running goes in `data/`, which isn't committed:
+
+```
+data/
+  temp/              Downloaded clip segments and work files (deleted after 3 hours)
+  processed/         Finished montages (deleted after 24 hours)
+  uploads/music/     Local background music files
+  cache/             Saved gamertag lookups
+  app.log            Server log
+```
 
 ## Known limitations
 

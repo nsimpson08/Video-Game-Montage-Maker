@@ -23,18 +23,19 @@ from dotenv import load_dotenv
 # Load .env before config so its values are visible to config.py
 load_dotenv()
 
-from config import config
+from config import config, DATA_FOLDER
 import logging
 from cost_monitor import check_cost_limits, get_cost_status, reset_daily_costs
 
 app = Flask(__name__)
 
 # Set up logging
+os.makedirs(DATA_FOLDER, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('app.log'),
+        logging.FileHandler(os.path.join(DATA_FOLDER, 'app.log')),
         logging.StreamHandler()
     ]
 )
@@ -2163,7 +2164,7 @@ def download_background_music(youtube_url, process_id):
 
 OPENXBL_BASE_URL = 'https://xbl.io/api/v2'
 GAMES_CACHE_TTL = 2 * 3600  # Reuse a gamertag's saved games if it was last used within 2 hours (OpenXBL allows 150 requests/hour)
-GAMES_CACHE_FILE = os.path.join('cache', 'gamertag_cache.json')
+GAMES_CACHE_FILE = os.path.join(DATA_FOLDER, 'cache', 'gamertag_cache.json')
 MAX_GAMES_RETURNED = 50
 
 # The cache file maps lowercase gamertag -> {'gamertag', 'games', 'fetched_at', 'last_used'}.

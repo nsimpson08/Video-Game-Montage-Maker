@@ -32,11 +32,8 @@ venv.bak/
 instance/
 .webassets-cache
 
-# Video processing
-cache/
-temp/
-uploads/
-processed/
+# Runtime files: downloads, montages, uploads, cache, logs
+data/
 *.mp4
 *.avi
 *.mov
