@@ -27,7 +27,7 @@ A Flask web app that turns an Xbox gamer's recently played games into a gameplay
 - Configurable clip length (5–300 seconds per game)
 - Partial downloads: only the needed segments of each video are fetched
 - Game title overlays, fade effects, and transitions between clips
-- Background music from YouTube or a local file, or keep the original audio
+- Background music from the included royalty-free tracks or a YouTube link, or keep the original audio
 - Progress reporting while videos download and process
 - Per-visitor rate limits and a cap on montages running at once, for public hosting
 
@@ -106,6 +106,7 @@ config.py            App settings, including folder locations and yt-dlp options
 cost_monitor.py      Estimates hosting costs from CPU, memory, and storage use
 templates/
   index.html         The web interface
+music/               Royalty-free background music tracks
 requirements.txt     Python dependencies
 Procfile, railway.json, nixpacks.toml, runtime.txt   Deployment config
 ```
@@ -116,7 +117,7 @@ Everything the app creates while running goes in `data/`, which isn't committed:
 data/
   temp/              Downloaded clip segments and work files (deleted after 3 hours)
   processed/         Finished montages (deleted after 24 hours)
-  uploads/music/     Local background music files
+  uploads/           Uploaded files
   cache/             Saved gamertag lookups
   app.log            Server log
 ```

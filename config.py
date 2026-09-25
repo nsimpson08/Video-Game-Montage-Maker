@@ -18,6 +18,7 @@ class Config:
     UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads')
     PROCESSED_FOLDER = os.path.join(DATA_FOLDER, 'processed')
     TEMP_FOLDER = os.path.join(DATA_FOLDER, 'temp')
+    MUSIC_FOLDER = 'music'  # Background music library, committed to the repo
     
     # Video Processing Configuration
     MAX_VIDEO_HEIGHT = 720  # Maximum video height for processing (pixels)
