@@ -947,8 +947,11 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                     game_title = f"Game {i+1}"
                     print(f"⚠️ Using fallback title for clip {i+1}: {game_title}")
                 
-                # Clean title for FFmpeg (escape special characters)
-                clean_title = game_title.replace("'", "\\'").replace('"', '\\"').replace(':', '\\:').replace('=', '\\=').replace(';', '\\;')[:50]  # Limit length
+                # Write the title to a file for drawtext to read. Putting it inline would need
+                # escaping, and titles with apostrophes (e.g. "Assassin's Creed") broke the command.
+                title_file_path = os.path.join(app.config['TEMP_FOLDER'], f'title_{process_id}_{i}.txt')
+                with open(title_file_path, 'w', encoding='utf-8') as f:
+                    f.write(game_title[:50])  # Limit length
                 
                 # Check if title overlays are enabled
                 batch_status = processing_status.get(batch_id, {})
@@ -964,7 +967,8 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                 filter_complex = f'{concat_inputs}concat=n={len(segments)}:v=1:a=1[joinedv][outa]'
                 if add_title_overlays:
                     # Add text overlay in center bottom with black background
-                    filter_complex += f';[joinedv]drawtext=text=\'{clean_title}\':fontcolor=white:fontsize=12:box=1:boxcolor=black@0.5:boxborderw=3:x=(w-text_w)/2:y=h-text_h-10[outv]'
+                    # expansion=none shows the text as-is, so "%" in a title isn't treated as a code
+                    filter_complex += f';[joinedv]drawtext=textfile=\'{title_file_path}\':expansion=none:fontcolor=white:fontsize=12:box=1:boxcolor=black@0.5:boxborderw=3:x=(w-text_w)/2:y=h-text_h-10[outv]'
                 else:
                     filter_complex += ';[joinedv]null[outv]'
 
@@ -976,6 +980,7 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                 
                 print(f"Running FFmpeg extract command: {' '.join(extract_cmd)}")
                 extract_result = subprocess.run(extract_cmd, capture_output=True, text=True)
+                os.remove(title_file_path)
                 
                 if extract_result.returncode == 0:
                     if os.path.exists(temp_clip_path) and os.path.getsize(temp_clip_path) > 0:
