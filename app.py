@@ -400,6 +400,8 @@ def download_multiple_videos_thread(urls, batch_id):
                 completed_videos += 1
             else:
                 failed_videos += 1
+                game_name = selected_games[i] if i < len(selected_games) and selected_games[i] else f"Video {i + 1}"
+                processing_status[batch_id].setdefault('skipped_games', []).append(game_name)
             
             processing_status[batch_id].update({
                 'completed_videos': completed_videos,
@@ -874,7 +876,24 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
         total_videos = len(video_paths)
         
         for i, video_path in enumerate(video_paths):
+            clips_before = len(temp_clip_files)
+            game_title = f"Game {i+1}"
             try:
+                # Get game title for overlay - use the game name sent with this video when there is one,
+                # otherwise work the game name out of the YouTube video title
+                batch_status = processing_status.get(batch_id, {})
+                selected_games = batch_status.get('selected_games', [])
+                
+                if i < len(selected_games) and selected_games[i]:
+                    game_title = selected_games[i]
+                    print(f"✅ Using selected game title for clip {i+1}: {game_title}")
+                elif titles and i < len(titles):
+                    game_title = game_title_from_video_title(titles[i])
+                    print(f"📺 Using game title from YouTube title for clip {i+1}: {game_title} (from: {titles[i]})")
+                else:
+                    game_title = f"Game {i+1}"
+                    print(f"⚠️ Using fallback title for clip {i+1}: {game_title}")
+                
                 logging.info(f"=== Processing video {i+1}/{total_videos} ===")
                 logging.info(f"Video path: {video_path}")
                 logging.info(f"Video title: {titles[i] if titles and i < len(titles) else 'Unknown'}")
@@ -931,21 +950,6 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
 
                 # Extract the segments and join them into one clip for this game
                 temp_clip_path = os.path.join(app.config['TEMP_FOLDER'], f'temp_clip_{process_id}_{i}.mp4')
-                
-                # Get game title for overlay - use the game name sent with this video when there is one,
-                # otherwise work the game name out of the YouTube video title
-                batch_status = processing_status.get(batch_id, {})
-                selected_games = batch_status.get('selected_games', [])
-                
-                if i < len(selected_games) and selected_games[i]:
-                    game_title = selected_games[i]
-                    print(f"✅ Using selected game title for clip {i+1}: {game_title}")
-                elif titles and i < len(titles):
-                    game_title = game_title_from_video_title(titles[i])
-                    print(f"📺 Using game title from YouTube title for clip {i+1}: {game_title} (from: {titles[i]})")
-                else:
-                    game_title = f"Game {i+1}"
-                    print(f"⚠️ Using fallback title for clip {i+1}: {game_title}")
                 
                 # Write the title to a file for drawtext to read. Putting it inline would need
                 # escaping, and titles with apostrophes (e.g. "Assassin's Creed") broke the command.
@@ -1018,6 +1022,10 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                 print(f"Error processing video {i+1} ({video_path}): {e}")
                 traceback.print_exc()
                 continue
+            finally:
+                # No clip was added for this video, so tell the user which game is missing
+                if len(temp_clip_files) == clips_before and batch_id in processing_status:
+                    processing_status[batch_id].setdefault('skipped_games', []).append(game_title)
         
         if not temp_clip_files:
             print(f"No clips were successfully processed. Total videos attempted: {total_videos}")
