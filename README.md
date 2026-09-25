@@ -1,162 +1,122 @@
-# Video GPT Gaming App - YouTube Video Processor
+# Video GPT Gaming App
 
-A powerful web application that allows you to download YouTube videos, cut them into smaller sections, and edit them together with background music. Built with Flask, yt-dlp, and MoviePy.
+A Flask web app that turns an Xbox gamer's recently played games into a gameplay montage. Enter a gamertag, pick games, and the app finds gameplay footage on YouTube, cuts clips from it, and edits them into one video with title overlays, transitions, and optional background music.
+
+> This is a personal project, shared publicly for viewing. It isn't accepting contributions or pull requests.
+
+## How it works
+
+1. **Load your games.** The app looks up an Xbox gamertag through the [OpenXBL](https://xbl.io) API and lists the 50 most recently played games. Lookups are cached for 2 hours to save API requests.
+2. **Pick games.** Choose games in the order they should appear in the montage.
+3. **Find footage.** For each game, the app searches YouTube with yt-dlp. It tries your preferred search type first, then falls back to the others:
+   - **Gameplay** (default): "*game* gameplay no commentary"
+   - **Trailers**: "*game* gameplay trailer"
+   - **Reviews**: "*game* gameplay review"
+
+   Results must mention the game in their title. Titles containing words like "interview", "podcast", "reaction", or "top 10" are skipped, so the montage shows gameplay rather than people talking. Longer videos are preferred.
+4. **Download only what's used.** Each game's clip (30 seconds by default) is split into three segments spread across the video, skipping the first and last 30 seconds. Only those segments are downloaded, so a 1-hour video costs about 30 seconds of footage.
+5. **Edit the montage.** ffmpeg joins the segments, adds the game's name as an overlay, fades between games, and mixes in background music if chosen.
 
 ## Features
 
-- **YouTube Video Download**: Download videos directly from YouTube URLs
-- **Video Cutting**: Cut videos into specific time segments
-- **Background Music**: Add custom background music to your videos
-- **Video Concatenation**: Combine multiple video cuts into one final video
-- **Real-time Progress**: Monitor download and processing progress
-- **Modern Web Interface**: Beautiful, responsive design with step-by-step workflow
-- **Background Processing**: Non-blocking video processing with status updates
+- Xbox game history lookup via OpenXBL, with a 2-hour cache
+- Automatic YouTube search with filtering for gameplay footage
+- Manual search, or paste your own YouTube URLs
+- Configurable clip length (5–300 seconds per game)
+- Partial downloads: only the needed segments of each video are fetched
+- Game title overlays, fade effects, and transitions between clips
+- Background music from YouTube or a local file, or keep the original audio
+- Progress reporting while videos download and process
+- Per-visitor rate limits and a cap on montages running at once, for public hosting
 
-## Prerequisites
+## Tech stack
 
-- Python 3.7 or higher
-- FFmpeg (required for video processing)
+- **Backend:** Python, Flask
+- **Video:** ffmpeg, yt-dlp (with Deno as its JavaScript runtime for YouTube)
+- **Data:** OpenXBL API for Xbox game history
+- **Frontend:** a single HTML page with Bootstrap and vanilla JavaScript
+- **Hosting:** gunicorn on Railway (Nixpacks)
 
-### Installing FFmpeg
+## Running locally
 
-#### macOS (using Homebrew):
+### Requirements
+
+- Python 3.10 or newer
+- [ffmpeg](https://ffmpeg.org/download.html)
+- [Deno](https://deno.com), which yt-dlp needs to download from YouTube
+- An [OpenXBL](https://xbl.io) API key (free tier) for gamertag lookups
+
+On macOS:
+
 ```bash
-brew install ffmpeg
+brew install ffmpeg deno
 ```
 
-#### Ubuntu/Debian:
+### Setup
+
 ```bash
-sudo apt update
-sudo apt install ffmpeg
-```
-
-#### Windows:
-Download from [FFmpeg official website](https://ffmpeg.org/download.html) or use Chocolatey:
-```bash
-choco install ffmpeg
-```
-
-## Installation
-
-1. **Clone or download the project files**
-
-2. **Create a virtual environment (recommended):**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies:**
-```bash
+git clone <this repo>
+cd "Video GPT Gaming App"
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Usage
+Create a `.env` file in the project folder:
 
-1. **Start the application:**
+```
+OPENXBL_API_KEY=your-openxbl-key
+```
+
+### Start the app
+
 ```bash
 python app.py
 ```
 
-2. **Open your web browser and navigate to:**
-```
-http://localhost:5000
-```
-
-3. **Follow the 4-step process:**
-
-   **Step 1: Download Video**
-   - Enter a YouTube URL
-   - Click "Download" and wait for completion
-   
-   **Step 2: Define Video Cuts**
-   - Add multiple time segments (start and end times in seconds)
-   - Click "Process Video" when ready
-   
-   **Step 3: Background Music (Optional)**
-   - Upload an audio file (MP3, WAV, etc.)
-   - The music will loop if shorter than the video
-   
-   **Step 4: Processing**
-   - Monitor the processing progress
-   - Download the final video when complete
-
-## File Structure
-
-```
-Video GPT Gaming App/
-├── app.py                 # Main Flask application
-├── requirements.txt       # Python dependencies
-├── templates/
-│   └── index.html        # Web interface
-├── uploads/              # Uploaded music files
-├── processed/            # Final processed videos
-├── temp/                 # Temporary downloaded videos
-└── README.md            # This file
-```
-
-## API Endpoints
-
-- `GET /` - Main application page
-- `POST /download` - Download YouTube video
-- `GET /status/<id>` - Get download/processing status
-- `POST /process` - Process video with cuts and music
-- `POST /upload_music` - Upload background music
-- `GET /download_result/<id>` - Download final processed video
-- `POST /cleanup` - Clean up temporary files
+Then open http://localhost:5001.
 
 ## Configuration
 
-The application creates several directories automatically:
-- `uploads/` - For uploaded music files
-- `processed/` - For final output videos
-- `temp/` - For temporary downloaded videos
+Set these as environment variables or in `.env`:
 
-## Troubleshooting
+| Variable | Purpose | Default |
+|---|---|---|
+| `OPENXBL_API_KEY` | OpenXBL key for Xbox game lookups | Required for gamertag lookups |
+| `FLASK_CONFIG` | `development` or `production` | `development` |
+| `SECRET_KEY` | Flask secret key (set this in production) | Placeholder value |
+| `HOST` / `PORT` | Address the dev server listens on | `127.0.0.1` / `5001` |
 
-### Common Issues
+## Deployment
 
-1. **FFmpeg not found:**
-   - Ensure FFmpeg is installed and accessible in your system PATH
-   - Restart your terminal after installation
+The repo includes config for [Railway](https://railway.com):
 
-2. **Video download fails:**
-   - Check your internet connection
-   - Verify the YouTube URL is valid and accessible
-   - Some videos may have download restrictions
+- `nixpacks.toml` installs Python, ffmpeg, and Deno
+- `Procfile` and `railway.json` run gunicorn as a single process with 8 threads
 
-3. **Processing errors:**
-   - Ensure video files are not corrupted
-   - Check available disk space
-   - Verify audio file formats are supported
+The app runs as one process because job progress and rate limit counts are kept in memory. Set `OPENXBL_API_KEY`, `FLASK_CONFIG=production`, and `SECRET_KEY` in Railway's variables.
 
-4. **Memory issues with large videos:**
-   - The app limits downloads to 720p for processing efficiency
-   - Consider processing shorter video segments
+## Project structure
 
-### Performance Tips
+```
+app.py               Flask app: routes, downloading, clip extraction, montage editing
+config.py            App settings, including yt-dlp options
+templates/index.html The web interface
+cost_monitor.py      Estimates hosting costs from CPU, memory, and storage use
+cleanup.py           Standalone script for removing old files
+requirements.txt     Python dependencies
+Procfile, railway.json, nixpacks.toml   Deployment config
+```
 
-- Use shorter video segments for faster processing
-- Compress audio files before upload
-- Close other applications during video processing
-- Ensure adequate disk space for temporary files
+Created at runtime and not committed: `temp/` (downloads and clips), `processed/` (finished montages, deleted after 24 hours), `uploads/music/` (local background music), and `cache/` (saved gamertag lookups).
 
-## Dependencies
+## Known limitations
 
-- **Flask**: Web framework
-- **yt-dlp**: YouTube video downloader
-- **MoviePy**: Video editing and processing
-- **Pillow**: Image processing
-- **Werkzeug**: WSGI utilities
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Contributing
-
-Feel free to submit issues, feature requests, or pull requests to improve the application.
+- YouTube often blocks downloads from cloud server IP addresses, so downloads that work locally may fail when hosted.
+- yt-dlp needs regular updates to keep working with YouTube: `pip install -U "yt-dlp[default]"`.
+- Jobs in progress are lost if the server restarts.
+- Game names that are a single common word can match videos of other games.
 
 ## Disclaimer
 
-This application is for educational and personal use only. Please respect YouTube's terms of service and copyright laws when downloading and processing videos. Only download content you have permission to use or that is in the public domain.
+This project is for personal and educational use. Downloading YouTube videos may conflict with YouTube's Terms of Service, and the footage belongs to its creators. Respect copyright and the terms of the services this app uses. This project isn't affiliated with Microsoft, Xbox, YouTube, or OpenXBL.
