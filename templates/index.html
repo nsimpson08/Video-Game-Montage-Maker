@@ -511,6 +511,11 @@ https://www.youtube.com/watch?v=..."></textarea>
                             <p>Your videos have been downloaded, processed, and combined into one final video.</p>
                         </div>
                         
+                        <!-- Shown when some games couldn't be included -->
+                        <div class="alert alert-warning text-start" id="skippedGamesWarning" style="display: none;">
+                            <i class="fas fa-exclamation-triangle me-2"></i><span id="skippedGamesText"></span>
+                        </div>
+                        
                         <!-- Video Preview Player -->
                         <div class="mb-4">
                             <h6 class="mb-3"><i class="fas fa-play-circle me-2"></i>Preview Your Video</h6>
@@ -1654,6 +1659,20 @@ https://www.youtube.com/watch?v=..."></textarea>
             });
         }
 
+        // Name any games that couldn't be downloaded or processed, so a missing game isn't a mystery
+        function showSkippedGames(skippedGames) {
+            const warning = document.getElementById('skippedGamesWarning');
+            if (skippedGames.length === 0) {
+                warning.style.display = 'none';
+                return;
+            }
+            const count = skippedGames.length === 1 ? '1 game' : `${skippedGames.length} games`;
+            document.getElementById('skippedGamesText').textContent =
+                `${count} couldn't be included in the montage: ${skippedGames.join(', ')}. ` +
+                `Try again, or use a different video for ${skippedGames.length === 1 ? 'it' : 'them'}.`;
+            warning.style.display = 'block';
+        }
+
         function resetStartButtons() {
             document.getElementById('progressSection').style.display = 'none';
             document.getElementById('startButton').style.display = 'inline-block';
@@ -1734,6 +1753,7 @@ https://www.youtube.com/watch?v=..."></textarea>
                         document.getElementById('progressSection').style.display = 'none';
                         document.getElementById('finalResult').style.display = 'block';
                         currentVideoPath = data.final_video_path;
+                        showSkippedGames(data.skipped_games || []);
                         
                         // Load video into preview player
                         loadVideoPreview(currentBatchId);
