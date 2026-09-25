@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Montage Maker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --main-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #e9ecef;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --main-bg: rgba(30, 30, 30, 0.95);
+            --text-color: #f0f0f0;
+            --card-bg: #2d2d2d;
+            --border-color: #444;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background: rgba(45, 45, 45, 0.9);
+            color: #f0f0f0;
+        }
+        
+        [data-theme="dark"] .bg-light {
+            background-color: #3d3d3d !important;
+            color: #f0f0f0 !important;
+        }
+        
+        /* Drag and Drop Styles */
+        .draggable-game {
+            cursor: move;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 4px 0;
+            background-color: #f8f9fa;
+            user-select: none;
+        }
+        
+        .draggable-game:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+        
+        .draggable-game.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+            background-color: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        
+        .draggable-game.drag-over {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        
+        [data-theme="dark"] .draggable-game {
+            background-color: #4a4a4a;
+            color: #f0f0f0;
+        }
+        
+        [data-theme="dark"] .draggable-game:hover {
+            background-color: #5a5a5a;
+            border-color: #6a6a6a;
+        }
+        
+        [data-theme="dark"] .draggable-game.drag-over {
+            border-color: #007bff;
+            background-color: #1a237e;
+        }
+        
+        .drag-handle {
+            cursor: grab;
+            color: #6c757d;
+            margin-right: 8px;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .main-container {
+            background: var(--main-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            backdrop-filter: blur(10px);
+            margin: 2rem auto;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            background: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            background: #f0f0f0;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 15px;
+        }
+        
+        .game-list-container {
+            background: var(--card-bg);
+            border-color: var(--border-color) !important;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid var(--border-color);
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-downloading { background: #fff3cd; color: #856404; }
+        .status-processing { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        
+        .cut-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .music-upload {
+            border: 2px dashed #dee2e6;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .music-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        /* Make all form labels bold */
+        .form-label {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+        <i class="fas fa-sun" id="themeIcon"></i>
+        <span id="themeText">Light</span>
+    </button>
+    
+    <div class="container">
+        <div class="main-container">
+            <div class="text-center mb-4">
+                <h1 class="display-4 fw-bold text-primary mb-3">
+                    Gaming Montage Maker<i class="fas fa-video ms-3"></i>
+                </h1>
+                <p class="lead text-muted">Automatically download multiple YouTube videos, extract custom-duration clips from each, and combine them with your choice of audio!</p>
+
+                <!-- Helpful tips -->
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Automated Workflow:</h6>
+                    <ul class="mb-0 small list-unstyled">
+                        <li>Enter multiple YouTube URLs (one per line)</li>
+                        <li>The app will automatically download each video</li>
+                        <li>Extract random segments from each video (excluding first/last 30s)</li>
+                        <li>Combine all segments into one final video</li>
+                        <li>No manual input required after providing URLs!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Example Video Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>Example Output</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Here's an example of what the final montage looks like:</p>
+                    <div class="text-center">
+                        <video controls class="w-100" style="max-width: 800px; border-radius: 10px;">
+                            <source src="/uploads/video/example.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This example shows 4 gaming clips combined with background music, fade transitions, and game title overlays.
+                    </small>
+                </div>
+            </div>
+
+            <!-- Main Process: Download & Process Videos -->
+            <div class="card mb-4" id="mainProcess">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Download & Process Videos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Xbox Gamertag:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="trueAchievementsUserId" placeholder="Example: helloJimHalpert">
+                            <button class="btn btn-outline-primary w-25" type="button" onclick="scrapeTrueAchievements()">
+                                <i class="fas fa-search me-2"></i>Apply
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Loads your most recently played Xbox games</small>
+                    </div>
+                    
+                    <!-- Game Search Section -->
+                    <div class="mb-3">
+                        <label class="form-label">Search for Games:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="gameSearchQuery" placeholder="Example: Cyberpunk 2077, the witcher, outer wilds">
+                            <button class="btn btn-outline-primary w-25" type="button" onclick="searchGameVideos()">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Search for specific games and automatically find up to 3 YouTube video options for each game. You can search for multiple games by separating them with commas.</small>
+                        
+                        <!-- Search Results -->
+                        <div id="gameSearchResults" class="mt-3" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Search Results:</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllSearchResults()">
+                                    <i class="fas fa-check-square me-1"></i>Select All
+                                </button>
+                            </div>
+                            <div id="gameSearchResultsContainer" class="border rounded p-3 game-list-container">
+                                <!-- Search results will be populated here -->
+                            </div>
+                            <small class="form-text text-muted">Click on videos to add them to your montage. Each game shows up to 3 video options.</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Game List Section -->
+                    <div id="gameListSection" class="mb-3" style="display: none;">
+                        <label class="form-label">Select Games for Montage:</label>
+                        <div id="gameListContainer" class="border rounded p-3 game-list-container">
+                            <!-- Games will be populated here -->
+                        </div>
+                        <small class="form-text text-muted">Select the games you want to include in your montage (order matters - they will appear in the order you select them)</small>
+                        
+                        <!-- Selection Order Display -->
+                        <div id="selectionOrderDisplay" class="mt-3" style="display: none;">
+                            <label class="form-label">Current Selection Order:</label>
+                            <div id="selectionOrderList" class="border rounded p-2 bg-light" style="min-height: 50px;">
+                                <!-- Order will be displayed here -->
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Drag and drop games to reorder them in the final montage
+                            </small>
+                        </div>
+                        
+                        <!-- YouTube Search Preferences -->
+                        <div class="mt-3 mb-3">
+                            <label class="form-label">YouTube Search Preference:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="searchType" id="searchGameplay" value="gameplay" checked>
+                                <label class="form-check-label" for="searchGameplay">
+                                    <strong>Gameplay First</strong> (no commentary)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="searchType" id="searchTrailers" value="trailers">
+                                <label class="form-check-label" for="searchTrailers">
+                                    <strong>Trailers First</strong>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="searchType" id="searchReviews" value="reviews">
+                                <label class="form-check-label" for="searchReviews">
+                                    <strong>Reviews First</strong>
+                                </label>
+                            </div>
+                            <small class="form-text text-muted d-block">If the primary search finds nothing suitable, the app automatically falls back to the other search types</small>
+                        </div>
+                        
+                        <!-- Auto-YouTube Search Button -->
+                        <div class="mt-3">
+                            <button class="btn btn-success" type="button" onclick="autoSearchYouTube()" id="autoSearchButton" style="display: none;">
+                                <i class="fas fa-youtube me-2"></i>Auto-Search YouTube
+                            </button>
+                            <small class="form-text text-muted d-block mt-2">Automatically searches YouTube based on your preference above, with automatic fallback if the primary search fails</small>
+                            
+                            <!-- Search Result Message -->
+                            <div id="searchResultMessage" class="mt-3" style="display: none;">
+                                <div class="alert alert-success" role="alert">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <span id="searchResultText"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="my-3">- OR -</div>
+                    <div class="mb-3">
+                        <label class="form-label">Enter YouTube URLs (one per line):</label>
+                        <textarea class="form-control" id="youtubeUrls" rows="5" placeholder="https://www.youtube.com/watch?v=...
+https://www.youtube.com/watch?v=...
+https://www.youtube.com/watch?v=..."></textarea>
+                    </div>
+                    
+                    <!-- Customizations -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Customizations</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Customization Options -->
+                            <div class="mb-5">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Clip Duration (seconds):</label>
+                                        <input type="number" class="form-control" id="clipDuration" value="30" min="5" max="300" step="5">
+                                        <small class="form-text text-muted">How many seconds to extract from each video (5-300 seconds)</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label d-block">Audio Option:</label>
+                                                                <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="audioOption" id="audioBackground" value="background" checked onchange="toggleBackgroundMusic()">
+                            <label class="form-check-label" for="audioBackground">
+                                Local Music Folder
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="audioOption" id="audioYoutube" value="youtube" onchange="toggleBackgroundMusic()">
+                            <label class="form-check-label" for="audioYoutube">
+                                YouTube URL
+                            </label>
+                        </div>
+                                    </div>
+
+                                    <div id="backgroundMusicSection" class="mb-3">
+                                        <!-- Local Music Folder Option -->
+                                        <div id="localMusicSection">
+                                            <label class="form-label">Select Background Music:</label>
+                                            <div id="localMusicList" clasxs="mb-2">
+                                                <div class="text-muted">Loading music files...</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- YouTube URL Option -->
+                                        <div id="youtubeMusicSection" style="display: none;">
+                                            <label class="form-label">Background Music YouTube URL:</label>
+                                            <input type="text" class="form-control" id="backgroundMusicUrl" placeholder="https://www.youtube.com/watch?v=MUSIC_VIDEO_ID">
+                                            <small class="text-muted">The audio from this video will be used as background music</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addTitleOverlays" checked>
+                                    <label class="form-check-label" for="addTitleOverlays">
+                                        Add game titles as overlays on video clips
+                                    </label>
+                                    <small class="form-text text-muted d-block">Shows small white text with subtle black background in bottom center of each clip</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addFadeEffects" checked>
+                                    <label class="form-check-label" for="addFadeEffects">
+                                        Add fade in/out effects
+                                    </label>
+                                    <small class="form-text text-muted d-block">Adds 1-second fade in at start and 1-second fade out at end of the final video</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addClipTransitions" checked>
+                                    <label class="form-check-label" for="addClipTransitions">
+                                        Add clip transitions
+                                    </label>
+                                    <small class="form-text text-muted d-block">Adds 1-second black fade transitions between each video clip</small>
+                                </div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-primary" type="button" onclick="downloadMultipleVideos(false)" id="startButton">
+                            <i class="fas fa-play me-2"></i>Start Process
+                        </button>
+                        <button class="btn btn-danger" type="button" onclick="stopProcess()" id="stopButton" style="display: none;">
+                            <i class="fas fa-stop me-2"></i>Stop Process
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearUrls()">
+                            <i class="fas fa-trash me-2"></i>Clear URLs
+                        </button>
+                        <button class="btn btn-warning" type="button" onclick="debugTest()" id="debugTestButton" style="border: 2px dashed #ffc107; font-weight: bold;">
+                            <i class="fas fa-bug me-2"></i>DEBUG TEST
+                        </button>
+                    </div>
+                    
+                    <!-- Progress Section -->
+                    <div id="progressSection" style="display: none;">
+                        <h5 class="mt-4">Processing Progress</h5>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" id="overallProgress" role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <p id="progressStatus">Starting process...</p>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <small class="text-muted">Total: <span id="totalVideos">0</span></small>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Completed: <span id="completedVideos">0</span></small>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Failed: <span id="failedVideos">0</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Result Section -->
+            <div class="card mb-4" id="finalResult" style="display: none;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Process Complete!</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5>All Videos Processed Successfully!</h5>
+                            <p>Your videos have been downloaded, processed, and combined into one final video.</p>
+                        </div>
+                        
+                        <!-- Video Preview Player -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="fas fa-play-circle me-2"></i>Preview Your Video</h6>
+                            <div class="video-preview-container">
+                                <video id="previewVideo" controls class="w-100" style="max-width: 800px; max-height: 450px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                                    <source id="previewVideoSource" src="" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Preview may take a moment to load
+                            </small>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <button class="btn btn-success btn-lg w-100" onclick="downloadResult()">
+                                    <i class="fas fa-download me-2"></i>Download Final Video
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-primary btn-lg w-100" onclick="startNewBatch()">
+                                    <i class="fas fa-plus me-2"></i>Start New Batch
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentBatchId = null;
+        let currentVideoPath = null;
+        
+        // Theme management
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTheme(currentTheme);
+            // Load music list and auto-select first option since background music is now default
+            refreshMusicList();
+            
+            // Add Enter key support for input fields
+            document.getElementById('trueAchievementsUserId').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    scrapeTrueAchievements();
+                }
+            });
+            
+            document.getElementById('gameSearchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchGameVideos();
+                }
+            });
+        });
+        
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(currentTheme);
+            localStorage.setItem('theme', currentTheme);
+        }
+        
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'Dark';
+            } else {
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'Light';
+            }
+        }
+
+        function toggleBackgroundMusic() {
+            const audioOption = document.querySelector('input[name="audioOption"]:checked').value;
+            const backgroundMusicSection = document.getElementById('backgroundMusicSection');
+            const youtubeSection = document.getElementById('youtubeMusicSection');
+            const localSection = document.getElementById('localMusicSection');
+            
+            if (audioOption === 'background') {
+                // Local Music Folder option
+                backgroundMusicSection.style.display = 'block';
+                localSection.style.display = 'block';
+                youtubeSection.style.display = 'none';
+                // Load music list when section is shown
+                refreshMusicList();
+            } else if (audioOption === 'youtube') {
+                // YouTube URL option
+                backgroundMusicSection.style.display = 'block';
+                localSection.style.display = 'none';
+                youtubeSection.style.display = 'block';
+            } else {
+                backgroundMusicSection.style.display = 'none';
+            }
+        }
+        
+
+        
+        function removeFileExtension(filename) {
+            return filename.replace(/\.[^/.]+$/, '');
+        }
+        
+        function refreshMusicList() {
+            const localMusicList = document.getElementById('localMusicList');
+            localMusicList.innerHTML = '<div class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading music files...</div>';
+            
+            fetch('/get_music_files')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.music_files.length > 0) {
+                        let musicHTML = '';
+                        data.music_files.forEach((musicFile, index) => {
+                            const displayName = removeFileExtension(musicFile.filename);
+                            const isFirst = index === 0;
+                            musicHTML += `
+                                <div class="card mb-2">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="flex-grow-1">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="selectedMusic" id="music_${index}" value="${musicFile.filename}" onchange="updateSelectedMusic()" ${isFirst ? 'checked' : ''}>
+                                                    <label class="form-check-label" for="music_${index}">
+                                                        <strong>${displayName}</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="ms-2">
+                                                <button type="button" class="btn btn-outline-success btn-sm" data-filename="${musicFile.filename}" onclick="previewMusic('${musicFile.filename}')">
+                                                    <i class="fas fa-play me-1"></i>Preview
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        localMusicList.innerHTML = musicHTML;
+                        
+                        // Auto-select the first music file if available
+                        if (data.music_files.length > 0) {
+                            updateSelectedMusic();
+                        }
+                    } else {
+                        localMusicList.innerHTML = '<div class="text-muted">No music files found in the music folder.</div>';
+                    }
+                })
+                .catch(error => {
+                    localMusicList.innerHTML = '<div class="text-danger">Error loading music files: ' + error.message + '</div>';
+                });
+        }
+        
+        function updateSelectedMusic() {
+            const selectedMusic = document.querySelector('input[name="selectedMusic"]:checked');
+            if (selectedMusic) {
+                console.log('Selected local music:', selectedMusic.value);
+            }
+        }
+        
+        // Global variable to store current playing audio
+        let currentPreviewAudio = null;
+        let currentPreviewTimeout = null;
+
+        function previewMusic(filename) {
+            const previewButton = event.target;
+            
+            // Check if this button is currently playing (red stop button)
+            if (previewButton.classList.contains('btn-danger')) {
+                // Stop the current audio
+                if (currentPreviewAudio) {
+                    currentPreviewAudio.pause();
+                    currentPreviewAudio.currentTime = 0;
+                    currentPreviewAudio = null;
+                }
+                if (currentPreviewTimeout) {
+                    clearTimeout(currentPreviewTimeout);
+                    currentPreviewTimeout = null;
+                }
+                resetPreviewButton(previewButton, '<i class="fas fa-play me-1"></i>Preview');
+                return;
+            }
+            
+            const originalText = previewButton.innerHTML;
+            
+            // If there's already audio playing from another button, stop it first
+            if (currentPreviewAudio) {
+                currentPreviewAudio.pause();
+                currentPreviewAudio.currentTime = 0;
+                currentPreviewAudio = null;
+                if (currentPreviewTimeout) {
+                    clearTimeout(currentPreviewTimeout);
+                    currentPreviewTimeout = null;
+                }
+                // Reset any other buttons that might be in stop state
+                document.querySelectorAll('.btn-danger').forEach(btn => {
+                    if (btn !== previewButton) {
+                        resetPreviewButton(btn, '<i class="fas fa-play me-1"></i>Preview');
+                    }
+                });
+            }
+            
+            previewButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+            previewButton.disabled = true;
+            
+            // Store filename in data attribute for later use
+            previewButton.setAttribute('data-filename', filename);
+            
+            // Create audio element for preview
+            const audio = new Audio(`/music/${filename}`);
+            audio.volume = 0.7;
+            
+            // Set up preview (30 seconds)
+            audio.addEventListener('loadeddata', () => {
+                previewButton.innerHTML = '<i class="fas fa-stop me-1"></i>Stop';
+                previewButton.classList.remove('btn-outline-success');
+                previewButton.classList.add('btn-danger');
+                previewButton.disabled = false;
+                
+                // Start playing from a random position (avoiding first 10 seconds)
+                const startTime = Math.random() * (Math.max(0, audio.duration - 40)) + 10;
+                audio.currentTime = startTime;
+                audio.play();
+                
+                // Store the audio globally so we can stop it later
+                currentPreviewAudio = audio;
+                
+                // Stop after 30 seconds
+                currentPreviewTimeout = setTimeout(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    currentPreviewAudio = null;
+                    currentPreviewTimeout = null;
+                    resetPreviewButton(previewButton, '<i class="fas fa-play me-1"></i>Preview');
+                }, 30000);
+            });
+            
+            audio.addEventListener('error', () => {
+                alert('Error previewing music: ' + filename);
+                currentPreviewAudio = null;
+                currentPreviewTimeout = null;
+                resetPreviewButton(previewButton, '<i class="fas fa-play me-1"></i>Preview');
+            });
+        }
+        
+        function resetPreviewButton(button, originalText) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove('btn-danger');
+            button.classList.add('btn-outline-success');
+            // Get filename from data attribute and restore original onclick
+            const filename = button.getAttribute('data-filename');
+            if (filename) {
+                button.onclick = function(event) { previewMusic(filename); };
+            }
+        }
+
+        function loadVideoPreview(batchId) {
+            const previewVideo = document.getElementById('previewVideo');
+            const previewVideoSource = document.getElementById('previewVideoSource');
+            
+            if (!previewVideo || !previewVideoSource) {
+                console.error('Preview video elements not found');
+                return;
+            }
+            
+            // Set the video source to the download endpoint
+            const videoUrl = `/download_result/${batchId}`;
+            previewVideoSource.src = videoUrl;
+            
+            // Load the video
+            previewVideo.load();
+            
+            // Add event listeners for better user experience
+            previewVideo.addEventListener('loadstart', function() {
+                console.log('Video preview loading started...');
+            });
+            
+            previewVideo.addEventListener('canplay', function() {
+                console.log('Video preview ready to play');
+            });
+            
+            previewVideo.addEventListener('error', function(e) {
+                console.error('Error loading video preview:', e);
+                // Show a fallback message
+                const container = previewVideo.parentElement;
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Video preview could not be loaded. You can still download the video using the button below.
+                    </div>
+                `;
+            });
+        }
+
+        function scrapeTrueAchievements() {
+            const userId = document.getElementById('trueAchievementsUserId').value.trim();
+            if (!userId) {
+                alert('Please enter an Xbox gamertag');
+                return;
+            }
+
+            // Show loading state
+            const applyButton = document.querySelector('button[onclick="scrapeTrueAchievements()"]');
+            const originalText = applyButton.innerHTML;
+            applyButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+            applyButton.disabled = true;
+
+            // Construct the URL
+            const trueAchievementsUrl = `www.trueachievements.com/gamer/${userId}/games`;
+            
+            fetch('/scrape_trueachievements', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    url: trueAchievementsUrl
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayGameList(data.games);
+                } else {
+                    alert('Error loading games: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            })
+            .finally(() => {
+                // Reset button state
+                applyButton.innerHTML = originalText;
+                applyButton.disabled = false;
+            });
+        }
+
+        function displayGameList(games) {
+            const gameListSection = document.getElementById('gameListSection');
+            const gameListContainer = document.getElementById('gameListContainer');
+            
+            if (games.length === 0) {
+                gameListContainer.innerHTML = '<p class="text-muted mb-0">No games found for this gamertag.</p>';
+            } else {
+                let gameListHTML = '<div class="row">';
+                
+                // Calculate how many games go in each column
+                const leftColumnCount = Math.ceil(games.length / 2);
+                const rightColumnCount = games.length - leftColumnCount;
+                
+                // Left column
+                gameListHTML += '<div class="col-md-6">';
+                for (let i = 0; i < leftColumnCount; i++) {
+                    gameListHTML += `
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="game_${i}" value="${games[i].title}" onchange="handleGameSelection(this)">
+                            <label class="form-check-label" for="game_${i}">
+                                ${games[i].title}
+                            </label>
+                        </div>
+                    `;
+                }
+                gameListHTML += '</div>';
+                
+                // Right column
+                if (rightColumnCount > 0) {
+                    gameListHTML += '<div class="col-md-6">';
+                                    for (let i = leftColumnCount; i < games.length; i++) {
+                    gameListHTML += `
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="game_${i}" value="${games[i].title}" onchange="handleGameSelection(this)">
+                            <label class="form-check-label" for="game_${i}">
+                                ${games[i].title}
+                            </label>
+                        </div>
+                    `;
+                }
+                    gameListHTML += '</div>';
+                }
+                
+                gameListHTML += '</div>';
+                gameListContainer.innerHTML = gameListHTML;
+            }
+            
+            gameListSection.style.display = 'block';
+            
+            // Reset the auto-search button state
+            document.getElementById('autoSearchButton').style.display = 'none';
+            
+            // Reset the selection order for new game list
+            gameSelectionOrder = [];
+        }
+
+        function updateSelectedGames() {
+            // Use the reordered gameSelectionOrder array instead of checkbox order
+            const selectedGames = gameSelectionOrder.filter(game => {
+                const checkbox = document.querySelector(`#gameListContainer input[value="${game}"]`);
+                return checkbox && checkbox.checked;
+            });
+            
+            // Store selected games for later use
+            window.selectedGames = selectedGames;
+            console.log('Selected games (in order):', selectedGames);
+            
+            // Hide any existing search result message when games are selected/unselected
+            const searchResultMessage = document.getElementById('searchResultMessage');
+            searchResultMessage.style.display = 'none';
+            
+            // Update visual order indicators
+            updateSelectionOrder();
+            
+            // Show/hide the auto-search button based on selection
+            const autoSearchButton = document.getElementById('autoSearchButton');
+            if (selectedGames.length > 0) {
+                autoSearchButton.style.display = 'inline-block';
+            } else {
+                autoSearchButton.style.display = 'none';
+            }
+        }
+
+        // Track the order in which games were selected
+        let gameSelectionOrder = [];
+
+        function handleGameSelection(checkbox) {
+            const gameTitle = checkbox.value;
+            
+            if (checkbox.checked) {
+                // Add to selection order (last clicked = last in order)
+                if (!gameSelectionOrder.includes(gameTitle)) {
+                    gameSelectionOrder.push(gameTitle);
+                }
+            } else {
+                // Remove from selection order
+                const index = gameSelectionOrder.indexOf(gameTitle);
+                if (index > -1) {
+                    gameSelectionOrder.splice(index, 1);
+                }
+            }
+            
+            // Update the selected games
+            updateSelectedGames();
+        }
+
+        function updateSelectionOrder() {
+            // Use the click order instead of the array order
+            const selectedGames = gameSelectionOrder.filter(game => {
+                const checkbox = document.querySelector(`#gameListContainer input[value="${game}"]`);
+                return checkbox && checkbox.checked;
+            });
+            
+            // Clear all existing order indicators
+            const allLabels = document.querySelectorAll('#gameListContainer .form-check-label');
+            allLabels.forEach(label => {
+                // Remove any existing order badge
+                const existingBadge = label.querySelector('.order-badge');
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+                // Remove any existing order number from the text
+                label.innerHTML = label.innerHTML.replace(/^\d+\.\s*/, '');
+            });
+            
+            // Add order indicators to selected games based on click order
+            selectedGames.forEach((gameTitle, index) => {
+                const checkboxes = document.querySelectorAll('#gameListContainer input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.value === gameTitle && checkbox.checked) {
+                        const label = checkbox.nextElementSibling;
+                        if (label) {
+                            // Add order number to the beginning of the label
+                            const orderNumber = index + 1;
+                            label.innerHTML = `${orderNumber}. ${label.innerHTML}`;
+                            
+                            // Add a small badge for visual emphasis
+                            const badge = document.createElement('span');
+                            badge.className = 'order-badge badge bg-primary ms-2';
+                            badge.textContent = `#${orderNumber}`;
+                            badge.style.fontSize = '0.7em';
+                            label.appendChild(badge);
+                        }
+                    }
+                });
+            });
+            
+            // Update the selection order display with drag and drop functionality
+            const selectionOrderDisplay = document.getElementById('selectionOrderDisplay');
+            const selectionOrderList = document.getElementById('selectionOrderList');
+            
+            if (selectedGames.length > 0) {
+                selectionOrderDisplay.style.display = 'block';
+                let orderHTML = '';
+                selectedGames.forEach((gameTitle, index) => {
+                    const orderNumber = index + 1;
+                    orderHTML += `
+                        <div class="draggable-game" draggable="true" data-game="${gameTitle}" data-index="${index}">
+                            <i class="fas fa-grip-vertical drag-handle"></i>
+                            <span class="badge bg-primary me-2">${orderNumber}</span>
+                            <span class="flex-grow-1">${gameTitle}</span>
+                        </div>
+                    `;
+                });
+                selectionOrderList.innerHTML = orderHTML;
+                
+                // Add drag and drop event listeners
+                addDragAndDropListeners();
+            } else {
+                selectionOrderDisplay.style.display = 'none';
+            }
+        }
+        
+        function addDragAndDropListeners() {
+            const draggableGames = document.querySelectorAll('.draggable-game');
+            
+            draggableGames.forEach(game => {
+                game.addEventListener('dragstart', handleDragStart);
+                game.addEventListener('dragend', handleDragEnd);
+                game.addEventListener('dragover', handleDragOver);
+                game.addEventListener('drop', handleDrop);
+                game.addEventListener('dragenter', handleDragEnter);
+                game.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+        
+        let draggedElement = null;
+        
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.outerHTML);
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            // Remove drag-over class from all elements
+            document.querySelectorAll('.draggable-game').forEach(el => {
+                el.classList.remove('drag-over');
+            });
+            draggedElement = null;
+        }
+        
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+        
+        function handleDragEnter(e) {
+            if (this !== draggedElement) {
+                this.classList.add('drag-over');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            if (draggedElement !== this) {
+                // Get the current order
+                const currentOrder = Array.from(document.querySelectorAll('.draggable-game')).map(el => el.dataset.game);
+                
+                // Find the indices
+                const draggedIndex = parseInt(draggedElement.dataset.index);
+                const targetIndex = parseInt(this.dataset.index);
+                
+                // Reorder the array
+                const draggedGame = currentOrder[draggedIndex];
+                currentOrder.splice(draggedIndex, 1);
+                currentOrder.splice(targetIndex, 0, draggedGame);
+                
+                // Update the gameSelectionOrder array
+                gameSelectionOrder = currentOrder;
+                
+                // Update the selected games array to reflect the new order
+                updateSelectedGames();
+                
+                // Update the display
+                updateSelectionOrder();
+            }
+            
+            this.classList.remove('drag-over');
+            return false;
+        }
+
+        // Game name for each video URL, used for the title overlays. Kept in sessionStorage so it
+        // survives a page reload (the browser restores the URL field but not page variables).
+        let videoGameNames = {};
+        try {
+            videoGameNames = JSON.parse(sessionStorage.getItem('videoGameNames')) || {};
+        } catch (e) {}
+
+        function setVideoGameName(url, gameName) {
+            videoGameNames[url] = gameName;
+            try {
+                sessionStorage.setItem('videoGameNames', JSON.stringify(videoGameNames));
+            } catch (e) {}
+        }
+
+        // Search settings for each kind of video. Trailers are often under 2 minutes, so they get a
+        // lower minimum and keep YouTube's relevance order instead of preferring longer videos.
+        const VIDEO_SEARCHES = {
+            gameplay: { suffix: 'gameplay no commentary', min_duration: 120, preferred_min_duration: 300 },
+            trailers: { suffix: 'gameplay trailer', min_duration: 20, preferred_min_duration: 0 },
+            reviews: { suffix: 'gameplay review', min_duration: 120, preferred_min_duration: 300 }
+        };
+        const SEARCH_MAX_DURATION = 3600; // 60 minutes; only the clip segments get downloaded
+
+        function searchYouTubeForGame(gameTitle, searchKind) {
+            const search = VIDEO_SEARCHES[searchKind];
+            return fetch('/search_youtube', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: `${gameTitle} ${search.suffix}`,
+                    game_name: gameTitle,
+                    min_duration: search.min_duration,
+                    max_duration: SEARCH_MAX_DURATION,
+                    preferred_min_duration: search.preferred_min_duration
+                })
+            }).then(response => response.json());
+        }
+
+        // Try each kind of search in order until one finds a suitable video
+        async function searchWithFallbacks(gameTitle, searchKinds) {
+            let result;
+            for (const searchKind of searchKinds) {
+                result = await searchYouTubeForGame(gameTitle, searchKind);
+                if (result.success || result.rate_limited) {
+                    if (result.success) {
+                        console.log(`✅ ${searchKind} search successful for "${gameTitle}": ${result.video_title}`);
+                    }
+                    return result; // No point trying the fallbacks when rate limited
+                }
+                console.log(`⚠️ ${searchKind} search failed for "${gameTitle}": ${result.error}`);
+            }
+            console.log(`❌ All searches failed for "${gameTitle}"`);
+            return result; // Return the last failed result
+        }
+
+        function searchGameVideos() {
+            const searchQuery = document.getElementById('gameSearchQuery').value.trim();
+            if (!searchQuery) {
+                alert('Please enter a game name to search for');
+                return;
+            }
+
+            // Show loading state
+            const searchButton = document.querySelector('button[onclick="searchGameVideos()"]');
+            const originalText = searchButton.innerHTML;
+            searchButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+            searchButton.disabled = true;
+
+            // Parse multiple games (comma-separated)
+            const gameNames = searchQuery.split(',').map(name => name.trim()).filter(name => name.length > 0);
+            
+            // Search for each game
+            const allSearchPromises = [];
+            
+            gameNames.forEach(gameName => {
+                Object.keys(VIDEO_SEARCHES).forEach(searchKind => {
+                    allSearchPromises.push(
+                        searchYouTubeForGame(gameName, searchKind)
+                        .then(result => ({ ...result, gameName }))
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            return { success: false, error: error.message, gameName };
+                        })
+                    );
+                });
+            });
+
+            Promise.all(allSearchPromises).then(results => {
+                // Reset button state
+                searchButton.innerHTML = originalText;
+                searchButton.disabled = false;
+
+                // Group results by game name
+                const gameResults = {};
+                gameNames.forEach(gameName => {
+                    gameResults[gameName] = results.filter(result => result.gameName === gameName);
+                });
+
+                // Find up to 3 successful results for each game
+                const successfulResults = [];
+                Object.keys(gameResults).forEach(gameName => {
+                    const gameResultsList = gameResults[gameName].filter(result => result.success && result.video_url);
+                    
+                    // Collect all videos from all successful searches for this game
+                    const allVideos = [];
+                    gameResultsList.forEach(result => {
+                        if (result.all_videos && Array.isArray(result.all_videos)) {
+                            // Use all videos from the search result
+                            result.all_videos.forEach(video => {
+                                allVideos.push({
+                                    ...video,
+                                    search_query: result.search_query
+                                });
+                            });
+                        } else {
+                            // Fallback to single video (backward compatibility)
+                            allVideos.push({
+                                video_url: result.video_url,
+                                video_title: result.video_title,
+                                video_duration: result.video_duration,
+                                search_query: result.search_query
+                            });
+                        }
+                    });
+                    
+                    // Remove duplicates based on video URL
+                    const uniqueVideos = [];
+                    const seenUrls = new Set();
+                    allVideos.forEach(video => {
+                        if (!seenUrls.has(video.video_url)) {
+                            seenUrls.add(video.video_url);
+                            uniqueVideos.push(video);
+                        }
+                    });
+                    
+                    // Take up to 3 unique results for each game
+                    const topResults = uniqueVideos.slice(0, 3);
+                    topResults.forEach(result => {
+                        successfulResults.push({ gameName, result });
+                    });
+                });
+
+                if (successfulResults.length > 0) {
+                    // Group results by game name
+                    const groupedResults = {};
+                    successfulResults.forEach(({ gameName, result }) => {
+                        if (!groupedResults[gameName]) {
+                            groupedResults[gameName] = [];
+                        }
+                        groupedResults[gameName].push(result);
+                    });
+                    
+                    // Show the search results
+                    const searchResultsContainer = document.getElementById('gameSearchResultsContainer');
+                    const searchResults = document.getElementById('gameSearchResults');
+                    
+                    let resultsHTML = '';
+                    Object.keys(groupedResults).forEach(gameName => {
+                        const gameResults = groupedResults[gameName];
+                        resultsHTML += `
+                            <div class="mb-3">
+                                <h6 class="text-primary mb-2">${gameName}</h6>
+                        `;
+                        
+                        gameResults.forEach((result, index) => {
+                            const uniqueId = `search_game_${Date.now()}_${gameName.replace(/\s+/g, '_')}_${index}`;
+                            resultsHTML += `
+                                <div class="form-check mb-2 ms-3">
+                                    <input class="form-check-input" type="checkbox" id="${uniqueId}" value="${gameName}" data-video-url="${result.video_url}" onchange="handleGameSearchSelection(this)">
+                                    <label class="form-check-label" for="${uniqueId}">
+                                        <strong>${result.video_title}</strong>
+                                        <br><small class="text-muted">Duration: ${Math.round(result.video_duration / 60)}:${(result.video_duration % 60).toString().padStart(2, '0')}</small>
+                                    </label>
+                                </div>
+                            `;
+                        });
+                        
+                        resultsHTML += `</div>`;
+                    });
+                    
+                    searchResultsContainer.innerHTML = resultsHTML;
+                    searchResults.style.display = 'block';
+                    
+                    // Show success message
+                    const gamesWithResults = Object.keys(groupedResults).length;
+                    const totalGames = gameNames.length;
+                    const totalVideos = successfulResults.length;
+                    
+                    if (gamesWithResults === totalGames) {
+                        showSearchResultMessage(`Found ${totalVideos} videos for all ${gamesWithResults} games!`, 'success');
+                    } else {
+                        showSearchResultMessage(`Found ${totalVideos} videos for ${gamesWithResults} out of ${totalGames} games.`, 'warning');
+                    }
+                } else {
+                    // No successful results
+                    showSearchResultMessage(`No suitable videos found for any of the games. Try different game names.`, 'warning');
+                }
+            });
+        }
+
+        function handleGameSearchSelection(checkbox) {
+            if (checkbox.checked) {
+                // Add the video URL to the YouTube URLs textarea
+                const videoUrl = checkbox.dataset.videoUrl;
+                const youtubeUrlsTextarea = document.getElementById('youtubeUrls');
+                setVideoGameName(videoUrl, checkbox.value);
+                
+                // Get current URLs
+                let currentUrls = youtubeUrlsTextarea.value.trim();
+                if (currentUrls) {
+                    currentUrls += '\n' + videoUrl;
+                } else {
+                    currentUrls = videoUrl;
+                }
+                
+                youtubeUrlsTextarea.value = currentUrls;
+                
+                // Show success message
+                showSearchResultMessage(`Added "${checkbox.value}" to your video list!`, 'success');
+            } else {
+                // Remove the video URL from the YouTube URLs textarea
+                const videoUrl = checkbox.dataset.videoUrl;
+                const youtubeUrlsTextarea = document.getElementById('youtubeUrls');
+                
+                // Remove the URL from the textarea
+                let currentUrls = youtubeUrlsTextarea.value.trim();
+                currentUrls = currentUrls.replace(videoUrl, '').replace(/\n\n+/g, '\n').trim();
+                youtubeUrlsTextarea.value = currentUrls;
+                
+                // Show info message
+                showSearchResultMessage(`Removed "${checkbox.value}" from your video list.`, 'info');
+            }
+        }
+
+        function showSearchResultMessage(message, type) {
+            // Remove any existing message
+            const existingMessage = document.getElementById('searchResultMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Create new message
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'searchResultMessage';
+            messageDiv.className = `alert alert-${type} mt-3`;
+            messageDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+            `;
+            
+            // Insert after the search results
+            const searchResults = document.getElementById('gameSearchResults');
+            searchResults.parentNode.insertBefore(messageDiv, searchResults.nextSibling);
+        }
+
+        function selectAllSearchResults() {
+            const checkboxes = document.querySelectorAll('#gameSearchResultsContainer input[type="checkbox"]');
+            const uncheckedBoxes = Array.from(checkboxes).filter(checkbox => !checkbox.checked);
+            
+            if (uncheckedBoxes.length > 0) {
+                // Select all unchecked boxes
+                uncheckedBoxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                    handleGameSearchSelection(checkbox);
+                });
+                showSearchResultMessage(`Added ${uncheckedBoxes.length} videos to your video list!`, 'success');
+            } else {
+                // All are already selected, so deselect all
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    handleGameSearchSelection(checkbox);
+                });
+                showSearchResultMessage('Removed all videos from your video list.', 'info');
+            }
+        }
+
+        function autoSearchYouTube() {
+            const selectedGames = window.selectedGames || [];
+            console.log('Auto-search started with games:', selectedGames);
+            
+            if (selectedGames.length === 0) {
+                alert('Please select at least one game first');
+                return;
+            }
+
+            // Clear any existing search result message
+            const searchResultMessage = document.getElementById('searchResultMessage');
+            searchResultMessage.style.display = 'none';
+
+            // Show loading state
+            const autoSearchButton = document.getElementById('autoSearchButton');
+            const originalText = autoSearchButton.innerHTML;
+            autoSearchButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching YouTube...';
+            autoSearchButton.disabled = true;
+
+            // Search for each selected game with fallback parameters
+            let searchPromises = selectedGames.map(gameTitle => {
+                // Get user's search preference
+                const searchType = document.querySelector('input[name="searchType"]:checked').value;
+                
+                // Search the preferred kind of video first, then fall back to the others
+                const searchOrders = {
+                    gameplay: ['gameplay', 'trailers', 'reviews'],
+                    trailers: ['trailers', 'gameplay', 'reviews'],
+                    reviews: ['reviews', 'gameplay', 'trailers']
+                };
+                console.log(`🔍 Searching ${searchOrders[searchType].join(' → ')} for "${gameTitle}"`);
+                return searchWithFallbacks(gameTitle, searchOrders[searchType])
+                    .then(result => ({ ...result, gameName: gameTitle }));
+            });
+
+            // Wait for all searches to complete
+            Promise.all(searchPromises)
+                .then(results => {
+                    console.log('All search results:', results);
+                    const successfulSearches = results.filter(result => result.success);
+                    const failedSearches = results.filter(result => !result.success);
+                    
+                    console.log('Successful searches:', successfulSearches);
+                    console.log('Failed searches:', failedSearches);
+                    
+                    // Log failed video count for debugging
+                    if (failedSearches.length > 0) {
+                        console.log(`Debug: ${failedSearches.length} games had no suitable videos found`);
+                    }
+                    
+                    if (successfulSearches.length === 0) {
+                        // Show error message inline
+                        const searchResultMessage = document.getElementById('searchResultMessage');
+                        const searchResultText = document.getElementById('searchResultText');
+                        const rateLimited = failedSearches.find(result => result.rate_limited);
+                        searchResultText.textContent = rateLimited
+                            ? rateLimited.error
+                            : 'No suitable videos found for any of the selected games. Please try different games or search manually.';
+                        searchResultMessage.querySelector('.alert').className = 'alert alert-warning';
+                        searchResultMessage.querySelector('i').className = 'fas fa-exclamation-triangle me-2';
+                        searchResultMessage.style.display = 'block';
+                        return;
+                    }
+
+                    // Collect all found video URLs
+                    const videoUrls = [];
+                    successfulSearches.forEach(result => {
+                        if (result.video_url) {
+                            videoUrls.push(result.video_url);
+                            setVideoGameName(result.video_url, result.gameName);
+                        }
+                    });
+
+                    // Update the YouTube URLs textarea
+                    document.getElementById('youtubeUrls').value = videoUrls.join('\n');
+                    
+                    // Log success for debugging
+                    console.log(`Found ${successfulSearches.length} videos for ${successfulSearches.length} games! URLs populated successfully.`);
+                    
+                    // Show success message inline
+                    const searchResultMessage = document.getElementById('searchResultMessage');
+                    const searchResultText = document.getElementById('searchResultText');
+                    searchResultText.textContent = `Successfully found ${successfulSearches.length} videos! URLs have been populated in the YouTube URLs field. You can now customize your settings and click "Start Process" when ready.`;
+                    searchResultMessage.style.display = 'block';
+                    
+                    // Show the main process section so user can see the URLs and customize
+                    document.getElementById('mainProcess').style.display = 'block';
+                    
+                    // Scroll to the YouTube URLs field so user can see the populated URLs
+                    document.getElementById('youtubeUrls').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                })
+                .catch(error => {
+                    console.error('YouTube search error:', error);
+                    // Show error message inline
+                    const searchResultMessage = document.getElementById('searchResultMessage');
+                    const searchResultText = document.getElementById('searchResultText');
+                    searchResultText.textContent = `Error during YouTube search: ${error.message || 'Unknown error'}`;
+                    searchResultMessage.querySelector('.alert').className = 'alert alert-danger';
+                    searchResultMessage.querySelector('i').className = 'fas fa-exclamation-circle me-2';
+                    searchResultMessage.style.display = 'block';
+                })
+                .finally(() => {
+                    // Reset button state
+                    autoSearchButton.innerHTML = originalText;
+                    autoSearchButton.disabled = false;
+                });
+        }
+
+        function showProgress() {
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('overallProgress').style.width = '0%';
+            document.getElementById('overallProgress').textContent = '0%';
+            document.getElementById('progressStatus').textContent = 'Starting process...';
+        }
+
+        function downloadMultipleVideos(autoStarted = false) {
+            const urlsText = document.getElementById('youtubeUrls').value.trim();
+            if (!urlsText) {
+                if (!autoStarted) {
+                    alert('Please enter YouTube URLs');
+                }
+                return;
+            }
+
+            // Parse URLs from textarea
+            const urls = urlsText.split('\n')
+                .map(url => url.trim())
+                .filter(url => url.length > 0);
+
+            if (urls.length === 0) {
+                alert('Please enter at least one valid YouTube URL');
+                return;
+            }
+
+            // Show progress and update buttons
+            showProgress();
+            document.getElementById('startButton').style.display = 'none';
+            document.getElementById('stopButton').style.display = 'inline-block';
+            
+            // Hide the Process Complete area when starting a new process
+            document.getElementById('finalResult').style.display = 'none';
+            
+            // Clear video preview when starting new process
+            const previewVideo = document.getElementById('previewVideo');
+            const previewVideoSource = document.getElementById('previewVideoSource');
+            if (previewVideo && previewVideoSource) {
+                previewVideo.pause();
+                previewVideoSource.src = '';
+                previewVideo.load();
+            }
+            document.getElementById('totalVideos').textContent = urls.length;
+            document.getElementById('completedVideos').textContent = '0';
+            document.getElementById('failedVideos').textContent = '0';
+
+            // Get customization options
+            const clipDuration = parseInt(document.getElementById('clipDuration').value) || 30;
+            const audioOption = document.querySelector('input[name="audioOption"]:checked').value;
+            const backgroundMusicUrl = document.getElementById('backgroundMusicUrl').value.trim();
+            const selectedLocalMusic = document.querySelector('input[name="selectedMusic"]:checked');
+            
+            // Determine music source based on audio option
+            let musicSource, localMusicFile;
+            if (audioOption === 'background') {
+                // Local Music Folder option
+                musicSource = 'local';
+                localMusicFile = selectedLocalMusic ? selectedLocalMusic.value : '';
+            } else if (audioOption === 'youtube') {
+                // YouTube URL option
+                musicSource = 'youtube';
+                localMusicFile = '';
+            } else {
+                // Keep original audio (fallback)
+                musicSource = 'original';
+                localMusicFile = '';
+            }
+            const trueAchievementsUserId = document.getElementById('trueAchievementsUserId').value.trim();
+            
+            // Validate options
+            if (clipDuration < 5 || clipDuration > 300) {
+                alert('Clip duration must be between 5 and 300 seconds');
+                return;
+            }
+            
+            if (audioOption === 'background') {
+                if (!selectedLocalMusic) {
+                    alert('Please select a background music file from the music folder');
+                    return;
+                }
+            } else if (audioOption === 'youtube') {
+                if (!backgroundMusicUrl) {
+                    alert('Please enter a background music YouTube URL');
+                    return;
+                }
+            }
+            
+            // Construct TrueAchievements URL if user ID is provided
+            let trueAchievementsUrl = '';
+            if (trueAchievementsUserId) {
+                trueAchievementsUrl = `www.trueachievements.com/gamer/${trueAchievementsUserId}/games`;
+                console.log('TrueAchievements URL constructed:', trueAchievementsUrl);
+            }
+            
+            const requestData = {
+                urls: urls,
+                clip_duration: clipDuration,
+                audio_option: audioOption === 'background' ? 'background' : (audioOption === 'youtube' ? 'background' : 'original'),
+                music_source: musicSource,
+                true_achievements_user_id: trueAchievementsUserId,
+                true_achievements_url: trueAchievementsUrl,
+                add_title_overlays: document.getElementById('addTitleOverlays').checked,
+                add_fade_effects: document.getElementById('addFadeEffects').checked,
+                add_clip_transitions: document.getElementById('addClipTransitions').checked,
+                // Game name for each URL, in URL order ('' when unknown, e.g. a pasted URL)
+                selected_games: urls.map(url => videoGameNames[url] || '')
+            };
+            
+            if (audioOption === 'background') {
+                // Local Music Folder option
+                requestData.local_music_file = selectedLocalMusic.value;
+            } else if (audioOption === 'youtube') {
+                // YouTube URL option
+                requestData.background_music_url = backgroundMusicUrl;
+            }
+            
+            // Debug logging
+            console.log('DEBUG: Sending request data:', requestData);
+            console.log('DEBUG: Audio option:', audioOption);
+            console.log('DEBUG: Background music URL:', backgroundMusicUrl);
+            
+            fetch('/download_multiple', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.batch_id) {
+                    currentBatchId = data.batch_id;
+                    monitorBatchDownload();
+                } else {
+                    // The montage didn't start (e.g. rate limit or server busy), so reset the buttons
+                    resetStartButtons();
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                resetStartButtons();
+                alert('Error: ' + error.message);
+            });
+        }
+
+        function resetStartButtons() {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('startButton').style.display = 'inline-block';
+            document.getElementById('stopButton').style.display = 'none';
+        }
+
+        function clearUrls() {
+            document.getElementById('youtubeUrls').value = '';
+            document.getElementById('trueAchievementsUserId').value = '';
+            document.getElementById('gameListSection').style.display = 'none';
+            document.getElementById('gameListContainer').innerHTML = '';
+            document.getElementById('autoSearchButton').style.display = 'none';
+            window.selectedGames = [];
+        }
+
+        function stopProcess() {
+            if (currentBatchId) {
+                // Send stop request to backend
+                fetch(`/stop_process/${currentBatchId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Process stopped successfully');
+                        // Reset UI
+                        startNewBatch();
+                    } else {
+                        console.error('Error stopping process:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error stopping process:', error.message);
+                });
+            } else {
+                console.log('No active process to stop');
+            }
+        }
+
+        function monitorBatchDownload() {
+            if (!currentBatchId) return;
+
+            fetch(`/status/${currentBatchId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'downloading') {
+                        document.getElementById('overallProgress').style.width = data.progress + '%';
+                        document.getElementById('overallProgress').textContent = data.progress + '%';
+                        document.getElementById('progressStatus').textContent = data.message;
+                        
+                        // Update video counts
+                        if (data.completed_videos !== undefined) {
+                            document.getElementById('completedVideos').textContent = data.completed_videos;
+                        }
+                        if (data.failed_videos !== undefined) {
+                            document.getElementById('failedVideos').textContent = data.failed_videos;
+                        }
+                        
+                        setTimeout(monitorBatchDownload, 2000);
+                    } else if (data.status === 'processing') {
+                        // Update progress for processing
+                        document.getElementById('overallProgress').style.width = data.progress + '%';
+                        document.getElementById('overallProgress').textContent = data.progress + '%';
+                        document.getElementById('progressStatus').textContent = data.message || 'Processing videos...';
+                        
+                        // Update video counts if available
+                        if (data.completed_videos !== undefined) {
+                            document.getElementById('completedVideos').textContent = data.completed_videos;
+                        }
+                        if (data.failed_videos !== undefined) {
+                            document.getElementById('failedVideos').textContent = data.failed_videos;
+                        }
+                        
+                        // Continue monitoring for completion
+                        setTimeout(monitorBatchDownload, 1000); // Poll more frequently during processing
+                    } else if (data.status === 'completed') {
+                        // Process completed
+                        document.getElementById('progressSection').style.display = 'none';
+                        document.getElementById('finalResult').style.display = 'block';
+                        currentVideoPath = data.final_video_path;
+                        
+                        // Load video into preview player
+                        loadVideoPreview(currentBatchId);
+                        
+                        // Reset button states when process completes
+                        document.getElementById('startButton').style.display = 'inline-block';
+                        document.getElementById('stopButton').style.display = 'none';
+                        
+                        // Update debug button to show "Test Complete" if this was a debug test
+                        const debugButton = document.getElementById('debugTestButton');
+                        if (debugButton.disabled) {
+                            debugButton.innerHTML = '<i class="fas fa-check me-2"></i>Test Completed';
+                            debugButton.disabled = false;
+                        }
+                    } else if (data.status === 'error' || data.status === 'not_found') {
+                        alert('Batch download failed: ' + data.message);
+                        // Reset debug button on error
+                        const debugButton = document.getElementById('debugTestButton');
+                        if (debugButton.disabled) {
+                            debugButton.innerHTML = '<i class="fas fa-bug me-2"></i>DEBUG TEST';
+                            debugButton.disabled = false;
+                        }
+                        // Reset UI on error
+                        startNewBatch();
+                    } else if (data.status === 'stopped') {
+                        // Process was stopped by user
+                        document.getElementById('progressSection').style.display = 'none';
+                        console.log('Process was stopped by user');
+                        // Reset debug button when stopped
+                        const debugButton = document.getElementById('debugTestButton');
+                        if (debugButton.disabled) {
+                            debugButton.innerHTML = '<i class="fas fa-bug me-2"></i>DEBUG TEST';
+                            debugButton.disabled = false;
+                        }
+                        startNewBatch();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error monitoring batch download:', error);
+                });
+        }
+
+
+
+
+
+
+
+        function downloadResult() {
+            if (currentBatchId) {
+                // Get the batch status to find the final video path
+                fetch(`/status/${currentBatchId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'completed' && data.final_video_path) {
+                            // Create a temporary download link
+                            const link = document.createElement('a');
+                            link.href = `/download_result/${currentBatchId}`;
+                            link.download = 'combined_video.mp4';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            alert('Video not ready for download yet');
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error downloading video: ' + error.message);
+                    });
+            } else {
+                alert('No video available for download');
+            }
+        }
+
+        function startNewBatch() {
+            // Reset to main process
+            document.getElementById('finalResult').style.display = 'none';
+            document.getElementById('mainProcess').style.display = 'block';
+            
+            // Clear video preview
+            const previewVideo = document.getElementById('previewVideo');
+            const previewVideoSource = document.getElementById('previewVideoSource');
+            if (previewVideo && previewVideoSource) {
+                previewVideo.pause();
+                previewVideoSource.src = '';
+                previewVideo.load();
+            }
+            
+            // Clear progress
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('youtubeUrls').value = '';
+            document.getElementById('trueAchievementsUserId').value = '';
+            document.getElementById('gameListSection').style.display = 'none';
+            document.getElementById('gameListContainer').innerHTML = '';
+            document.getElementById('autoSearchButton').style.display = 'none';
+            window.selectedGames = [];
+            
+            // Reset button states
+            document.getElementById('startButton').style.display = 'inline-block';
+            document.getElementById('stopButton').style.display = 'none';
+            
+            // Reset debug button
+            const debugButton = document.getElementById('debugTestButton');
+            debugButton.innerHTML = '<i class="fas fa-bug me-2"></i>DEBUG TEST';
+            debugButton.disabled = false;
+            
+            // Reset title overlays checkbox
+            document.getElementById('addTitleOverlays').checked = true;
+            
+            // Reset fade effects checkbox
+            document.getElementById('addFadeEffects').checked = true;
+            
+            // Reset clip transitions checkbox
+            document.getElementById('addClipTransitions').checked = true;
+            
+            // Reset search type to gameplay first
+            document.getElementById('searchGameplay').checked = true;
+            
+            // Reset music source to YouTube
+            document.getElementById('musicYoutube').checked = true;
+            document.getElementById('youtubeMusicSection').style.display = 'block';
+            document.getElementById('localMusicSection').style.display = 'none';
+            document.getElementById('backgroundMusicUrl').value = '';
+            
+            // Reset variables
+            currentBatchId = null;
+            currentVideoPath = null;
+        }
+
+
+
+        function debugTest() {
+            console.log('🚀 DEBUG TEST: Starting automated workflow test...');
+            
+            // Show loading state on debug button
+            const debugButton = document.getElementById('debugTestButton');
+            const originalText = debugButton.innerHTML;
+            debugButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running Test...';
+            debugButton.disabled = true;
+            
+            // Step 1: Set the TrueAchievements user ID
+            document.getElementById('trueAchievementsUserId').value = 'helloJimHalpert';
+            console.log('✅ Set TrueAchievements User ID: helloJimHalpert');
+            
+            // Step 2: Scrape TrueAchievements for games
+            console.log('🔍 Step 2: Scraping TrueAchievements for games...');
+            fetch('/scrape_trueachievements', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: 'helloJimHalpert',
+                    url: 'www.trueachievements.com/gamer/helloJimHalpert/games'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ TrueAchievements scraping successful:', data.games.length, 'games found');
+                    
+                    // Step 3: Display games and select first 2
+                    displayGameList(data.games);
+                    
+                                            // Step 4: Select first 2 games automatically
+                        setTimeout(() => {
+                            console.log('🎯 Step 4: Auto-selecting first 2 games...');
+                            const checkboxes = document.querySelectorAll('#gameListContainer input[type="checkbox"]');
+                            
+                            // Clear the game selection order first
+                            gameSelectionOrder = [];
+                            
+                            // Select first 2 games and add them to the selection order
+                            for (let i = 0; i < Math.min(2, checkboxes.length); i++) {
+                                checkboxes[i].checked = true;
+                                // Add to game selection order
+                                gameSelectionOrder.push(checkboxes[i].value);
+                            }
+                            
+                            // Update selected games (now uses gameSelectionOrder)
+                            updateSelectedGames();
+                            
+                            // Update the selection order display
+                            updateSelectionOrder();
+                            
+                            console.log('✅ Selected games:', window.selectedGames);
+                            console.log('✅ Game selection order:', gameSelectionOrder);
+                        
+                        // Step 5: Auto-search YouTube for the selected games
+                        console.log('🎬 Step 5: Auto-searching YouTube for gameplay reviews...');
+                        setTimeout(() => {
+                            autoSearchYouTube();
+                            
+                            // Step 6: Wait for YouTube search to complete, then auto-click Start Process button
+                            console.log('⏳ Waiting for YouTube search to complete...');
+                            
+                            // Check if YouTube URLs are populated every 2 seconds
+                            const checkForUrls = () => {
+                                const youtubeUrlsTextarea = document.getElementById('youtubeUrls');
+                                const urls = youtubeUrlsTextarea.value.trim();
+                                
+                                if (urls && urls.split('\n').length >= 2) {
+                                    console.log('✅ YouTube search completed - URLs found:', urls.split('\n').length);
+                                    console.log('🚀 Step 6: Auto-clicking Start Process button...');
+                                    
+                                    const startProcessButton = document.getElementById('startButton');
+                                    if (startProcessButton && !startProcessButton.disabled) {
+                                        startProcessButton.click();
+                                        console.log('✅ Start Process button clicked - video processing should begin!');
+                                    } else {
+                                        console.log('⚠️ Start Process button not available or disabled');
+                                    }
+                                } else {
+                                    console.log('⏳ Still waiting for YouTube search... (found', urls.split('\n').length, 'URLs)');
+                                    setTimeout(checkForUrls, 2000); // Check again in 2 seconds
+                                }
+                            };
+                            
+                            // Start checking after 5 seconds to give search time to begin
+                            setTimeout(checkForUrls, 5000);
+                            
+                        }, 500);
+                        
+                    }, 1000);
+                    
+                } else {
+                    console.error('❌ TrueAchievements scraping failed:', data.error);
+                    alert('DEBUG TEST failed at step 2: ' + data.error);
+                    debugButton.innerHTML = originalText;
+                    debugButton.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('❌ DEBUG TEST error at step 2:', error);
+                alert('DEBUG TEST failed at step 2: ' + error.message);
+                debugButton.innerHTML = originalText;
+                debugButton.disabled = false;
+            });
+        }
+
+        // Initialize app
+    </script>
+</body>
+</html>
+
