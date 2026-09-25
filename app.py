@@ -2095,7 +2095,14 @@ def upload_music():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-MONTAGE_DOWNLOAD_NAME = 'My Video Game Montage.mp4'  # File name the browser saves the montage as
+def montage_download_name():
+    """File name the browser saves the montage as, e.g. "My Video Game Montage - Sep 25 2026.mp4".
+    The page sends the visitor's local date, since the server's clock may be on a different day."""
+    date_text = request.args.get('date', '')
+    if not re.fullmatch(r'[A-Za-z]{3} \d{1,2} \d{4}', date_text):
+        today = datetime.now()
+        date_text = f"{today:%b} {today.day} {today.year}"
+    return f"My Video Game Montage - {date_text}.mp4"
 
 @app.route('/download_result/<process_id>')
 def download_result(process_id):
@@ -2116,7 +2123,7 @@ def download_result(process_id):
             # Keep downloaded videos for reuse - no cleanup on download
             print("Download started. Downloaded videos are kept for reuse.")
             
-            return send_file(output_path, as_attachment=True, download_name=MONTAGE_DOWNLOAD_NAME)
+            return send_file(output_path, as_attachment=True, download_name=montage_download_name())
         
         # Check if it's a process ID
         else:
@@ -2134,7 +2141,7 @@ def download_result(process_id):
             # Keep downloaded videos for reuse - no cleanup on download
             print("Download started. Downloaded videos are kept for reuse.")
             
-            return send_file(output_path, as_attachment=True, download_name=MONTAGE_DOWNLOAD_NAME)
+            return send_file(output_path, as_attachment=True, download_name=montage_download_name())
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500

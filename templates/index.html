@@ -1793,8 +1793,10 @@ https://www.youtube.com/watch?v=..."></textarea>
                         if (data.status === 'completed' && data.final_video_path) {
                             // Create a temporary download link
                             const link = document.createElement('a');
-                            link.href = `/download_result/${currentBatchId}`;
-                            link.download = 'My Video Game Montage.mp4';
+                            // Name the file with the visitor's local date, e.g. "Sep 25 2026"
+                            const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).replace(',', '');
+                            link.href = `/download_result/${currentBatchId}?date=${encodeURIComponent(date)}`;
+                            link.download = `My Video Game Montage - ${date}.mp4`;
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);
