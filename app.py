@@ -1502,7 +1502,7 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                         return
                 elif music_source == 'local' and local_music_file:
                     # Use local music file
-                    music_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'music')
+                    music_folder = app.config['MUSIC_FOLDER']
                     background_music_path = os.path.join(music_folder, local_music_file)
                     if not os.path.exists(background_music_path):
                         print(f"Local music file not found: {background_music_path}, using video without music")
@@ -1786,7 +1786,7 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                         return
                 elif music_source == 'local' and local_music_file:
                     # Use local music file
-                    music_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'music')
+                    music_folder = app.config['MUSIC_FOLDER']
                     background_music_path = os.path.join(music_folder, local_music_file)
                     if not os.path.exists(background_music_path):
                         print(f"Local music file not found for single clip: {background_music_path}")
@@ -2476,7 +2476,7 @@ def stop_process(batch_id):
 def get_music_files():
     """Get list of music files from the music folder"""
     try:
-        music_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'music')
+        music_folder = app.config['MUSIC_FOLDER']
         
         # Create music folder if it doesn't exist
         if not os.path.exists(music_folder):
@@ -2537,7 +2537,7 @@ def get_music_files():
 def serve_music(filename):
     """Serve music files for preview"""
     try:
-        music_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'music')
+        music_folder = app.config['MUSIC_FOLDER']
         file_path = os.path.join(music_folder, filename)
         
         if not os.path.exists(file_path):

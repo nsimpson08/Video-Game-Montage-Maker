@@ -474,9 +474,6 @@ https://www.youtube.com/watch?v=..."></textarea>
                         <button class="btn btn-outline-secondary" type="button" onclick="clearUrls()">
                             <i class="fas fa-trash me-2"></i>Clear URLs
                         </button>
-                        <button class="btn btn-warning" type="button" onclick="debugTest()" id="debugTestButton" style="border: 2px dashed #ffc107; font-weight: bold;">
-                            <i class="fas fa-bug me-2"></i>DEBUG TEST
-                        </button>
                     </div>
                     
                     <!-- Progress Section -->
@@ -1734,33 +1731,15 @@ https://www.youtube.com/watch?v=..."></textarea>
                         // Reset button states when process completes
                         document.getElementById('startButton').style.display = 'inline-block';
                         document.getElementById('stopButton').style.display = 'none';
-                        
-                        // Update debug button to show "Test Complete" if this was a debug test
-                        const debugButton = document.getElementById('debugTestButton');
-                        if (debugButton.disabled) {
-                            debugButton.innerHTML = '<i class="fas fa-check me-2"></i>Test Completed';
-                            debugButton.disabled = false;
-                        }
+
                     } else if (data.status === 'error' || data.status === 'not_found') {
                         alert('Batch download failed: ' + data.message);
-                        // Reset debug button on error
-                        const debugButton = document.getElementById('debugTestButton');
-                        if (debugButton.disabled) {
-                            debugButton.innerHTML = '<i class="fas fa-bug me-2"></i>DEBUG TEST';
-                            debugButton.disabled = false;
-                        }
                         // Reset UI on error
                         startNewBatch();
                     } else if (data.status === 'stopped') {
                         // Process was stopped by user
                         document.getElementById('progressSection').style.display = 'none';
                         console.log('Process was stopped by user');
-                        // Reset debug button when stopped
-                        const debugButton = document.getElementById('debugTestButton');
-                        if (debugButton.disabled) {
-                            debugButton.innerHTML = '<i class="fas fa-bug me-2"></i>DEBUG TEST';
-                            debugButton.disabled = false;
-                        }
                         startNewBatch();
                     }
                 })
@@ -1828,11 +1807,6 @@ https://www.youtube.com/watch?v=..."></textarea>
             document.getElementById('startButton').style.display = 'inline-block';
             document.getElementById('stopButton').style.display = 'none';
             
-            // Reset debug button
-            const debugButton = document.getElementById('debugTestButton');
-            debugButton.innerHTML = '<i class="fas fa-bug me-2"></i>DEBUG TEST';
-            debugButton.disabled = false;
-            
             // Reset title overlays checkbox
             document.getElementById('addTitleOverlays').checked = true;
             
@@ -1857,115 +1831,6 @@ https://www.youtube.com/watch?v=..."></textarea>
         }
 
 
-
-        function debugTest() {
-            console.log('🚀 DEBUG TEST: Starting automated workflow test...');
-            
-            // Show loading state on debug button
-            const debugButton = document.getElementById('debugTestButton');
-            const originalText = debugButton.innerHTML;
-            debugButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running Test...';
-            debugButton.disabled = true;
-            
-            // Step 1: Set the TrueAchievements user ID
-            document.getElementById('trueAchievementsUserId').value = 'helloJimHalpert';
-            console.log('✅ Set TrueAchievements User ID: helloJimHalpert');
-            
-            // Step 2: Scrape TrueAchievements for games
-            console.log('🔍 Step 2: Scraping TrueAchievements for games...');
-            fetch('/scrape_trueachievements', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: 'helloJimHalpert',
-                    url: 'www.trueachievements.com/gamer/helloJimHalpert/games'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('✅ TrueAchievements scraping successful:', data.games.length, 'games found');
-                    
-                    // Step 3: Display games and select first 2
-                    displayGameList(data.games);
-                    
-                                            // Step 4: Select first 2 games automatically
-                        setTimeout(() => {
-                            console.log('🎯 Step 4: Auto-selecting first 2 games...');
-                            const checkboxes = document.querySelectorAll('#gameListContainer input[type="checkbox"]');
-                            
-                            // Clear the game selection order first
-                            gameSelectionOrder = [];
-                            
-                            // Select first 2 games and add them to the selection order
-                            for (let i = 0; i < Math.min(2, checkboxes.length); i++) {
-                                checkboxes[i].checked = true;
-                                // Add to game selection order
-                                gameSelectionOrder.push(checkboxes[i].value);
-                            }
-                            
-                            // Update selected games (now uses gameSelectionOrder)
-                            updateSelectedGames();
-                            
-                            // Update the selection order display
-                            updateSelectionOrder();
-                            
-                            console.log('✅ Selected games:', window.selectedGames);
-                            console.log('✅ Game selection order:', gameSelectionOrder);
-                        
-                        // Step 5: Auto-search YouTube for the selected games
-                        console.log('🎬 Step 5: Auto-searching YouTube for gameplay reviews...');
-                        setTimeout(() => {
-                            autoSearchYouTube();
-                            
-                            // Step 6: Wait for YouTube search to complete, then auto-click Start Process button
-                            console.log('⏳ Waiting for YouTube search to complete...');
-                            
-                            // Check if YouTube URLs are populated every 2 seconds
-                            const checkForUrls = () => {
-                                const youtubeUrlsTextarea = document.getElementById('youtubeUrls');
-                                const urls = youtubeUrlsTextarea.value.trim();
-                                
-                                if (urls && urls.split('\n').length >= 2) {
-                                    console.log('✅ YouTube search completed - URLs found:', urls.split('\n').length);
-                                    console.log('🚀 Step 6: Auto-clicking Start Process button...');
-                                    
-                                    const startProcessButton = document.getElementById('startButton');
-                                    if (startProcessButton && !startProcessButton.disabled) {
-                                        startProcessButton.click();
-                                        console.log('✅ Start Process button clicked - video processing should begin!');
-                                    } else {
-                                        console.log('⚠️ Start Process button not available or disabled');
-                                    }
-                                } else {
-                                    console.log('⏳ Still waiting for YouTube search... (found', urls.split('\n').length, 'URLs)');
-                                    setTimeout(checkForUrls, 2000); // Check again in 2 seconds
-                                }
-                            };
-                            
-                            // Start checking after 5 seconds to give search time to begin
-                            setTimeout(checkForUrls, 5000);
-                            
-                        }, 500);
-                        
-                    }, 1000);
-                    
-                } else {
-                    console.error('❌ TrueAchievements scraping failed:', data.error);
-                    alert('DEBUG TEST failed at step 2: ' + data.error);
-                    debugButton.innerHTML = originalText;
-                    debugButton.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('❌ DEBUG TEST error at step 2:', error);
-                alert('DEBUG TEST failed at step 2: ' + error.message);
-                debugButton.innerHTML = originalText;
-                debugButton.disabled = false;
-            });
-        }
 
         // Initialize app
     </script>
