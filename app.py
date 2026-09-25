@@ -4,8 +4,10 @@ import tempfile
 import shutil
 import traceback
 import subprocess
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_file, session
+import hashlib
+import hmac
+from datetime import datetime, timedelta
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -58,10 +60,34 @@ def rate_limit_exceeded(e):
     retry_message = "Please try again later."
     try:
         seconds_left = limiter.current_limit.reset_at - time.time()
-        retry_message = f"Please try again in {max(1, int(seconds_left // 60) + 1)} minutes."
+        retry_message = f"Please try again in {max(1, -(-int(seconds_left) // 60))} minutes."  # Minutes, rounded up
     except Exception:
         pass
+    if request.endpoint == 'login':
+        return render_template('login.html', error=f"{e.description} {retry_message}"), 429
     return jsonify({'success': False, 'rate_limited': True, 'error': f"{e.description} {retry_message}"}), 429
+
+# Password gate. With REQUIRE_PASSWORD=true, visitors must enter APP_PASSWORD before anything else
+# works. REQUIRE_PASSWORD=false (or unset) turns it off without deleting the password.
+app.permanent_session_lifetime = timedelta(days=30)
+
+def password_required():
+    return os.environ.get('REQUIRE_PASSWORD', 'false').strip().lower() in ('1', 'true', 'yes', 'on')
+
+def password_fingerprint():
+    """Stored in the login session, so changing APP_PASSWORD signs everyone out"""
+    return hashlib.sha256(os.environ.get('APP_PASSWORD', '').encode()).hexdigest()[:16]
+
+@app.before_request
+def check_password_gate():
+    if not password_required() or request.endpoint in ('login', 'static'):
+        return None
+    if os.environ.get('APP_PASSWORD') and session.get('auth') == password_fingerprint():
+        return None
+    # The page goes to the login screen; other requests get a 401 the page turns into a redirect
+    if request.endpoint == 'index':
+        return redirect(url_for('login'))
+    return jsonify({'success': False, 'login_required': True, 'error': 'Password required'}), 401
 
 # Server-wide cap on montages running at once, since each one uses a lot of CPU for ffmpeg
 MAX_CONCURRENT_MONTAGES = 2
@@ -117,6 +143,27 @@ def cleanup_old_files():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per 15 minutes", methods=['POST'], error_message="Too many password attempts.")
+def login():
+    if not password_required():
+        return redirect(url_for('index'))
+    
+    error = None
+    if request.method == 'POST':
+        expected_password = os.environ.get('APP_PASSWORD', '')
+        entered_password = request.form.get('password', '')
+        if not expected_password:
+            # Fail closed: the gate is on but no password is set, so nobody gets in
+            error = 'The site password has not been set up yet.'
+        elif hmac.compare_digest(entered_password.encode(), expected_password.encode()):
+            session.permanent = True
+            session['auth'] = password_fingerprint()
+            return redirect(url_for('index'))
+        else:
+            error = 'Incorrect password.'
+    return render_template('login.html', error=error)
 
 @app.route('/uploads/video/<filename>')
 def serve_video(filename):

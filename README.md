@@ -30,6 +30,7 @@ A Flask web app that turns an Xbox gamer's recently played games into a gameplay
 - Background music from the included royalty-free tracks or a YouTube link, or keep the original audio
 - Progress reporting while videos download and process
 - Per-visitor rate limits and a cap on montages running at once, for public hosting
+- Optional password gate, switched on and off with an environment variable
 
 ## Tech stack
 
@@ -88,6 +89,8 @@ Set these as environment variables or in `.env`:
 | `FLASK_CONFIG` | `development` or `production` | `development` |
 | `SECRET_KEY` | Flask secret key (set this in production) | Placeholder value |
 | `HOST` / `PORT` | Address the dev server listens on | `127.0.0.1` / `5001` |
+| `REQUIRE_PASSWORD` | `true` to require a password before the app can be used | Off |
+| `APP_PASSWORD` | The password visitors must enter when `REQUIRE_PASSWORD` is on | None |
 
 ## Deployment
 

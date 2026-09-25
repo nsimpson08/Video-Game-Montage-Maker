@@ -548,6 +548,16 @@ https://www.youtube.com/watch?v=..."></textarea>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // When the password gate is on and the login has expired, requests come back 401,
+        // so send the visitor to the login page instead of showing errors
+        const originalFetch = window.fetch;
+        window.fetch = (...args) => originalFetch(...args).then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+            }
+            return response;
+        });
+
         let currentBatchId = null;
         let currentVideoPath = null;
         
