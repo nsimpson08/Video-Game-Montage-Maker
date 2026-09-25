@@ -2095,6 +2095,8 @@ def upload_music():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+MONTAGE_DOWNLOAD_NAME = 'My Video Game Montage.mp4'  # File name the browser saves the montage as
+
 @app.route('/download_result/<process_id>')
 def download_result(process_id):
     try:
@@ -2114,7 +2116,7 @@ def download_result(process_id):
             # Keep downloaded videos for reuse - no cleanup on download
             print("Download started. Downloaded videos are kept for reuse.")
             
-            return send_file(output_path, as_attachment=True, download_name=f'combined_video_{process_id}.mp4')
+            return send_file(output_path, as_attachment=True, download_name=MONTAGE_DOWNLOAD_NAME)
         
         # Check if it's a process ID
         else:
@@ -2132,7 +2134,7 @@ def download_result(process_id):
             # Keep downloaded videos for reuse - no cleanup on download
             print("Download started. Downloaded videos are kept for reuse.")
             
-            return send_file(output_path, as_attachment=True, download_name=f'final_video_{process_id}.mp4')
+            return send_file(output_path, as_attachment=True, download_name=MONTAGE_DOWNLOAD_NAME)
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
