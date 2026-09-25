@@ -13,6 +13,8 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-change-this-in-production'
     DEBUG = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
     
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
     # File Upload Configuration
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads')
@@ -71,6 +73,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
+    SESSION_COOKIE_SECURE = True  # Only send the login cookie over HTTPS
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24)
     AUTO_CLEANUP = True
 
