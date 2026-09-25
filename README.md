@@ -1,4 +1,6 @@
-# Video GPT Gaming App
+# Video Game Montage Maker
+
+Look up an Xbox gamertag, select recently played games, and create a montage for reminiscing!
 
 A Flask web app that turns an Xbox gamer's recently played games into a gameplay montage. Enter a gamertag, pick games, and the app finds gameplay footage on YouTube, cuts clips from it, and edits them into one video with title overlays, transitions, and optional background music.
 
@@ -55,8 +57,8 @@ brew install ffmpeg deno
 ### Setup
 
 ```bash
-git clone <this repo>
-cd "Video GPT Gaming App"
+git clone https://github.com/nsimpson08/Video-Game-Montage-Maker.git
+cd Video-Game-Montage-Maker
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
