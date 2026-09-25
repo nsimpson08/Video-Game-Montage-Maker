@@ -165,27 +165,6 @@ def login():
             error = 'Incorrect password.'
     return render_template('login.html', error=error)
 
-@app.route('/uploads/video/<filename>')
-def serve_video(filename):
-    """Serve video files from uploads/video folder"""
-    try:
-        video_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'video')
-        file_path = os.path.join(video_folder, filename)
-        
-        if not os.path.exists(file_path):
-            return jsonify({'error': 'Video file not found'}), 404
-        
-        # Check if file is a supported video format
-        supported_formats = ['.mp4', '.avi', '.mov', '.mkv', '.webm']
-        if not any(filename.lower().endswith(fmt) for fmt in supported_formats):
-            return jsonify({'error': 'Unsupported file format'}), 400
-        
-        return send_file(file_path, mimetype='video/mp4')
-        
-    except Exception as e:
-        print(f"Error serving video file: {e}")
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/download_multiple', methods=['POST'])
 @limiter.limit("5 per hour", error_message="You can make 5 montages per hour.",
                deduct_when=lambda response: response.status_code == 200)  # Only count montages that start
