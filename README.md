@@ -110,6 +110,8 @@ cost_monitor.py      Estimates hosting costs from CPU, memory, and storage use
 templates/
   index.html         The web interface
 music/               Royalty-free background music tracks
+static/
+  example.mp4        Example montage shown at the top of the page
 requirements.txt     Python dependencies
 Dockerfile, railway.json   Deployment config
 ```
