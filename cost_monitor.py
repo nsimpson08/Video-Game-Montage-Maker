@@ -21,7 +21,7 @@ class CostMonitor:
         self.max_storage_gb = max_storage_gb
         self.max_cpu_percent = max_cpu_percent
         self.max_memory_gb = max_memory_gb
-        self.monitor_file = Path("cost_monitor.json")
+        self.monitor_file = Path("data") / "cost_monitor.json"
         self.monitor_data = self.load_monitor_data()
         
         # Cost estimation (rough estimates)
@@ -60,7 +60,7 @@ class CostMonitor:
         
         # Storage usage
         storage_gb = 0
-        for path in ["uploads", "processed", "temp"]:
+        for path in ["data/uploads", "data/processed", "data/temp"]:
             if Path(path).exists():
                 storage_gb += sum(f.stat().st_size for f in Path(path).rglob('*') if f.is_file()) / (1024**3)
         

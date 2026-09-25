@@ -5,6 +5,9 @@ Modify these settings as needed
 
 import os
 
+# Everything the app creates while running (downloads, montages, uploads, cache, logs) goes here
+DATA_FOLDER = 'data'
+
 class Config:
     # Flask Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-change-this-in-production'
@@ -12,9 +15,9 @@ class Config:
     
     # File Upload Configuration
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    UPLOAD_FOLDER = 'uploads'
-    PROCESSED_FOLDER = 'processed'
-    TEMP_FOLDER = 'temp'
+    UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads')
+    PROCESSED_FOLDER = os.path.join(DATA_FOLDER, 'processed')
+    TEMP_FOLDER = os.path.join(DATA_FOLDER, 'temp')
     
     # Video Processing Configuration
     MAX_VIDEO_HEIGHT = 720  # Maximum video height for processing (pixels)
