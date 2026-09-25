@@ -1,0 +1,9 @@
+.git
+.env
+.claude
+.vscode
+venv
+data
+__pycache__
+*.pyc
+.DS_Store

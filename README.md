@@ -37,7 +37,7 @@ A Flask web app that turns an Xbox gamer's recently played games into a gameplay
 - **Video:** ffmpeg, yt-dlp (with Deno as its JavaScript runtime for YouTube)
 - **Data:** OpenXBL API for Xbox game history
 - **Frontend:** a single HTML page with Bootstrap and vanilla JavaScript
-- **Hosting:** gunicorn on Railway (Nixpacks)
+- **Hosting:** Docker and gunicorn on Railway
 
 ## Running locally
 
@@ -93,8 +93,8 @@ Set these as environment variables or in `.env`:
 
 The repo includes config for [Railway](https://railway.com):
 
-- `nixpacks.toml` installs Python, ffmpeg, and Deno
-- `Procfile` and `railway.json` run gunicorn as a single process with 8 threads
+- `Dockerfile` installs Python 3.13, ffmpeg, and Deno, then runs gunicorn as a single process with 8 threads
+- `railway.json` tells Railway to build from the Dockerfile
 
 The app runs as one process because job progress and rate limit counts are kept in memory. Set `OPENXBL_API_KEY`, `FLASK_CONFIG=production`, and `SECRET_KEY` in Railway's variables.
 
@@ -108,7 +108,7 @@ templates/
   index.html         The web interface
 music/               Royalty-free background music tracks
 requirements.txt     Python dependencies
-Procfile, railway.json, nixpacks.toml, runtime.txt   Deployment config
+Dockerfile, railway.json   Deployment config
 ```
 
 Everything the app creates while running goes in `data/`, which isn't committed:
