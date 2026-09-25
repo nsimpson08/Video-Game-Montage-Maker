@@ -807,6 +807,14 @@ def game_title_from_video_title(video_title):
     title = ' '.join(title.split()).strip(' -:')
     return title or video_title
 
+def has_audio_stream(video_path):
+    """True if the video file has at least one audio track"""
+    result = subprocess.run(
+        ['ffprobe', '-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', video_path],
+        capture_output=True, text=True
+    )
+    return bool(result.stdout.strip())
+
 CLIP_SEGMENTS_PER_GAME = 3  # Split each game's clip time into this many segments
 MIN_SEGMENT_SECONDS = 3  # Use fewer segments rather than go shorter than this
 CLIP_BUFFER_SECONDS = 30  # Skip the first and last 30s of each video (intros/outros)
@@ -966,8 +974,19 @@ def auto_process_videos_thread(video_paths, process_id, batch_id, titles=None):
                 extract_cmd = ['ffmpeg']
                 for start, dur in segments:
                     extract_cmd += ['-ss', f'{start:.3f}', '-t', f'{dur:.3f}', '-i', video_path]
+                
+                # Every clip needs an audio track to be joined with the others, so give videos
+                # with no sound a silent track of the same length for each segment
+                if has_audio_stream(video_path):
+                    audio_labels = [f'[{n}:a:0]' for n in range(len(segments))]
+                else:
+                    print(f"Video has no audio track, adding silence: {video_path}")
+                    audio_labels = []
+                    for n, (start, dur) in enumerate(segments):
+                        extract_cmd += ['-f', 'lavfi', '-t', f'{dur:.3f}', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000']
+                        audio_labels.append(f'[{len(segments) + n}:a:0]')
 
-                concat_inputs = ''.join(f'[{n}:v:0][{n}:a:0]' for n in range(len(segments)))
+                concat_inputs = ''.join(f'[{n}:v:0]{audio_labels[n]}' for n in range(len(segments)))
                 filter_complex = f'{concat_inputs}concat=n={len(segments)}:v=1:a=1[joinedv][outa]'
                 if add_title_overlays:
                     # Add text overlay in center bottom with black background
